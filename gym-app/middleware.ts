@@ -1,33 +1,32 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-// Definir rutas públicas
 const isPublicRoute = createRouteMatcher(['/', '/sign-in(.*)', '/sign-up(.*)']);
 
-export default clerkMiddleware((auth, req) => {
-  // Obtener el estado de autenticación
-  const { userId } = auth();
+export default clerkMiddleware(async (auth, req) => {
+  const authData = await auth(); // Esperar la resolución de auth()
+  const { userId } = authData;
+  console.log('Middleware - URL:', req.url, 'UserId:', userId);
 
-  // Si no está autenticado y no es una ruta pública, redirigir a /sign-in
-  if (!userId && !isPublicRoute(req)) {
+  // Si es una ruta pública, permitir acceso
+  if (isPublicRoute(req)) {
+    console.log('Ruta pública, permitiendo acceso');
+    return NextResponse.next();
+  }
+
+  // Si no hay usuario autenticado, redirigir a /sign-in
+  if (!userId) {
+    console.log('No autenticado, redirigiendo a /sign-in');
     return NextResponse.redirect(new URL('/sign-in', req.url));
   }
 
-  // Si está autenticado y va a sign-in o sign-up, redirigir a /dashboard
-  const url = new URL(req.url);
-  if (userId && (url.pathname.startsWith('/sign-in') || url.pathname.startsWith('/sign-up'))) {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
-  }
-
-  // Continuar con la solicitud
+  console.log('Autenticado, permitiendo acceso');
   return NextResponse.next();
 });
 
 export const config = {
   matcher: [
-    // Aplicar a todas las rutas excepto archivos estáticos y Next.js internals
     '/((?!_next/static|_next/image|favicon.ico).*)',
-    // Incluir rutas API si las usás
     '/(api|trpc)(.*)',
   ],
 };
