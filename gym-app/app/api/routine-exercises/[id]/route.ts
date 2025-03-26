@@ -13,12 +13,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return new Response('No autorizado', { status: 403 });
   }
 
-  const { name, description } = await req.json();
-  const exercise = await prisma.exercise.update({
+  const { routineId, exerciseId, dayOfWeek, sets, reps, notes } = await req.json();
+  const routineExercise = await prisma.routineExercise.update({
     where: { id: params.id },
-    data: { name, description },
+    data: { routineId, exerciseId, dayOfWeek, sets, reps, notes },
   });
-  return NextResponse.json(exercise);
+  return NextResponse.json(routineExercise);
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
@@ -32,6 +32,6 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     return new Response('No autorizado', { status: 403 });
   }
 
-  await prisma.exercise.delete({ where: { id: params.id } });
+  await prisma.routineExercise.delete({ where: { id: params.id } });
   return new Response(null, { status: 204 });
 }

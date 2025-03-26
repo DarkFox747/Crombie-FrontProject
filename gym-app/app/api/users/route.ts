@@ -3,8 +3,8 @@ import prisma from '../../../lib/prisma';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const exercises = await prisma.exercise.findMany();
-  return NextResponse.json(exercises);
+  const users = await prisma.user.findMany();
+  return NextResponse.json(users);
 }
 
 export async function POST(req: Request) {
@@ -18,11 +18,11 @@ export async function POST(req: Request) {
     return new Response('No autorizado', { status: 403 });
   }
 
-  const { name, description } = await req.json();
-  if (!name) return new Response('Nombre requerido', { status: 400 });
+  const { email, name, dni, role } = await req.json();
+  if (!email || !name) return new Response('Datos incompletos', { status: 400 });
 
-  const exercise = await prisma.exercise.create({
-    data: { name, description, createdBy: userId },
+  const user = await prisma.user.create({
+    data: { email, name, dni, role: role || 'ALUMNO' },
   });
-  return NextResponse.json(exercise, { status: 201 });
+  return NextResponse.json(user, { status: 201 });
 }
