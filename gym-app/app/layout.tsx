@@ -1,5 +1,6 @@
 import { ClerkProvider, SignedOut, SignInButton, SignedIn, UserButton } from '@clerk/nextjs';
 import './globals.css';
+import Navbar from '@/components/Nabvar';
 
 export const metadata = {
   title: 'Gym App',
@@ -16,7 +17,7 @@ export default function RootLayout({
       <html lang="es">
         <body className="flex flex-col min-h-screen">
           <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Esto es un header</h1>
+            <Navbar />
             <div>
               <SignedOut>
                 <SignInButton mode="modal" />

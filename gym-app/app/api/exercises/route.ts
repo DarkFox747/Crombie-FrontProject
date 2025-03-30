@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   if (!userId) return new Response('No autenticado', { status: 401 });
 
   const requester = await prisma.user.findUnique({ where: { id: userId } });
-  if (!requester || requester.role !== 'PROFESSOR') {
+  if (!requester || (requester.role !== 'PROFESSOR' && requester.role !== 'ADMIN')) {
     return new Response('No autorizado', { status: 403 });
   }
 

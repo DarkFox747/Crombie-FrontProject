@@ -9,7 +9,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   if (!userId) return new Response('No autenticado', { status: 401 });
 
   const requester = await prisma.user.findUnique({ where: { id: userId } });
-  if (!requester || requester.role !== 'PROFESSOR') {
+  if (!requester || (requester.role !== 'PROFESSOR' && requester.role !== 'ADMIN')) {
     return new Response('No autorizado', { status: 403 });
   }
 
@@ -28,7 +28,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   if (!userId) return new Response('No autenticado', { status: 401 });
 
   const requester = await prisma.user.findUnique({ where: { id: userId } });
-  if (!requester || requester.role !== 'PROFESSOR') {
+  if (!requester || (requester.role !== 'PROFESSOR' && requester.role !== 'ADMIN')) {
     return new Response('No autorizado', { status: 403 });
   }
 
