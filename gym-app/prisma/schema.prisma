@@ -19,6 +19,7 @@ model User {
   name         String
   dni          String       @unique
   phone        String?
+  profilePictureUrl String?        
   role         Role         @default(ALUMNO)
   createdAt    DateTime     @default(now())
   routineHistories RoutineHistory[]
