@@ -3,10 +3,7 @@ import { Storage } from '@google-cloud/storage';
 import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 
-const storage = new Storage({
-  keyFilename: './gcp-service-account.json',
-  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-});
+const storage = new Storage(); // Usamos ADC como configuramos antes
 const bucket = storage.bucket(process.env.GOOGLE_CLOUD_BUCKET_NAME);
 
 export async function POST(req: Request) {
@@ -22,7 +19,13 @@ export async function POST(req: Request) {
 
   const fileName = `${userId}-${Date.now()}.${file.name.split('.').pop()}`;
   const blob = bucket.file(fileName);
-  const blobStream = blob.createWriteStream({ resumable: false });
+  const blobStream = blob.createWriteStream({
+    resumable: false,
+    metadata: {
+      contentType: file.type, // Establecer el tipo MIME correcto
+    },
+    predefinedAcl: 'publicRead', // Hacer el archivo público al subirlo
+  });
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
