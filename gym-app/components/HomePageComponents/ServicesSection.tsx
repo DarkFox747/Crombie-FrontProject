@@ -1,0 +1,48 @@
+"use client";
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+
+export default function ServicesSection() {
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
+  const services = [
+    {
+      title: 'Entrenamiento Personal',
+      img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop',
+    },
+    {
+      title: 'Clases Grupales',
+      img: 'https://images.unsplash.com/photo-1571736951392-d75c39b7f4e9?q=80&w=2070&auto=format&fit=crop',
+    },
+    {
+      title: 'Área de Pesas',
+      img: 'https://images.unsplash.com/photo-1605296866985-34b2f9c86b53?q=80&w=2070&auto=format&fit=crop',
+    },
+  ];
+
+  return (
+    <section className="py-16 px-4 md:px-16 bg-gray-900">
+      <h2 className="text-4xl font-bold text-center mb-12">Nuestros Servicios</h2>
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+        {services.map((service, index) => (
+          <motion.div
+            key={index}
+            initial="hidden"
+            whileInView="visible"
+            variants={fadeIn}
+            whileHover={{ scale: 1.05 }}
+            className="bg-gray-700 rounded-lg overflow-hidden"
+          >
+            <Image src={service.img} alt={service.title} width={400} height={250} className="w-full" />
+            <div className="p-4">
+              <h3 className="text-xl font-semibold">{service.title}</h3>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
