@@ -2,13 +2,24 @@ import { auth } from '@clerk/nextjs/server';
 import prisma from '../../../lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get('userId');
+  const status = searchParams.get('status');
+
+  const filters = {
+    ...(userId ? { userId } : {}),
+    ...(status ? { status } : {}),
+  };
+
   const routines = await prisma.routineHistory.findMany({
+    where: filters,
     include: { routineExercises: { include: { exercise: true } } },
   });
   return NextResponse.json(routines);
 }
 
+// Mantener POST como está
 export async function POST(req: Request) {
   const authData = await auth();
   const { userId } = authData;
@@ -16,7 +27,7 @@ export async function POST(req: Request) {
   if (!userId) return new Response('No autenticado', { status: 401 });
 
   const requester = await prisma.user.findUnique({ where: { id: userId } });
-  if (!requester || (requester.role !== 'PROFESSOR' && requester.role !== 'ADMIN')) {
+  if (!requester || requester.role !== 'PROFESSOR') {
     return new Response('No autorizado', { status: 403 });
   }
 

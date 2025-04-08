@@ -1,54 +1,51 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/nextjs';
-import Link from 'next/link';
+import Image from 'next/image';
+import RoutinesHeader from '../../components/RoutinesPageComponents/RoutinesHeader';
+import RoutinesList from '../../components/RoutinesPageComponents/RoutinesList';
 
 export default function Routines() {
-  const { userId } = useAuth();
   const [routines, setRoutines] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [filterStatus, setFilterStatus] = useState(null);
 
   useEffect(() => {
     fetchRoutines();
-  }, []);
+  }, [selectedUserId, filterStatus]);
 
   const fetchRoutines = async () => {
-    const res = await fetch('/api/routines');
+    const params = new URLSearchParams();
+    if (selectedUserId) params.append('userId', selectedUserId);
+    if (filterStatus) params.append('status', filterStatus);
+
+    const res = await fetch(`/api/routines?${params.toString()}`);
     const data = await res.json();
     setRoutines(data);
   };
 
-  if (!userId) return <div className="p-4">Inicia sesión para ver las rutinas.</div>;
+  const handleUserSelect = (userId) => {
+    setSelectedUserId(userId);
+    setFilterStatus(null); // Resetear filtro al cambiar usuario
+  };
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+  };
 
   return (
-    <div className="min-h-screen p-4">
-      <h1 className="text-3xl font-bold mb-4">Rutinas</h1>
-      {routines.length === 0 ? (
-        <p>No hay rutinas disponibles.</p>
-      ) : (
-        <ul className="space-y-4">
-          {routines.map((routine) => (
-            <li key={routine.id} className="border p-4 rounded">
-              <div className="flex justify-between">
-                <div>
-                  <strong>Usuario ID: {routine.userId}</strong>
-                  <p>Inicio: {new Date(routine.startDate).toLocaleDateString()}</p>
-                  <p>Estado: {routine.status}</p>
-                </div>
-                <Link href={`/routines/edit/${routine.id}`} className="text-blue-500 hover:underline">
-                  Editar
-                </Link>
-              </div>
-              <ul className="mt-2 space-y-1">
-                {routine.routineExercises.map((re) => (
-                  <li key={re.id}>
-                    {re.exercise.name} ({re.dayOfWeek}): {re.sets} series x {re.reps} reps
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="min-h-screen bg-gray-900 text-white relative">
+      {/* Fondo desenfocado */}
+      <Image
+        src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop"
+        alt="Fondo Gimnasio"
+        layout="fill"
+        objectFit="cover"
+        className="opacity-20 blur-md fixed"
+      />
+      <div className="relative z-10">
+        <RoutinesHeader onUserSelect={handleUserSelect} onFilterChange={handleFilterChange} />
+        <RoutinesList routines={routines} />
+      </div>
     </div>
   );
 }
