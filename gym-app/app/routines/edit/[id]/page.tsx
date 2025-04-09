@@ -2,36 +2,45 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
+import RoutineGrid from '../../../../components/RoutinesEditComponents/RoutineGrid';
 
 export default function EditRoutine() {
   const { userId } = useAuth();
   const { id } = useParams();
   const [routine, setRoutine] = useState(null);
-  const [formData, setFormData] = useState({ userId: '', startDate: '', endDate: '', status: '' });
+  const [exercises, setExercises] = useState([]);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (id) fetchRoutine();
+    if (id) {
+      fetchRoutine();
+      fetchExercises();
+    }
   }, [id]);
 
   const fetchRoutine = async () => {
     const res = await fetch(`/api/routines/${id}`);
     const data = await res.json();
     setRoutine(data);
-    setFormData({
-      userId: data.userId,
-      startDate: new Date(data.startDate).toISOString().split('T')[0],
-      endDate: data.endDate ? new Date(data.endDate).toISOString().split('T')[0] : '',
-      status: data.status,
-    });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const fetchExercises = async () => {
+    const res = await fetch('/api/exercises');
+    const data = await res.json();
+    setExercises(data);
+  };
+
+  const handleSave = async (updatedRoutineExercises) => {
     const res = await fetch(`/api/routines/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({
+        startDate: routine.startDate,
+        endDate: routine.endDate,
+        status: routine.status,
+        routineExercises: updatedRoutineExercises,
+      }),
     });
     if (res.ok) {
       setMessage('Rutina actualizada');
@@ -41,56 +50,23 @@ export default function EditRoutine() {
     }
   };
 
-  if (!userId) return <div className="p-4">Inicia sesión para editar.</div>;
-  if (!routine) return <div className="p-4">Cargando...</div>;
+  if (!userId) return <div className="p-4 text-yellow-400">Inicia sesión para editar.</div>;
+  if (!routine) return <div className="p-4 text-yellow-400">Cargando...</div>;
 
   return (
-    <div className="min-h-screen p-4">
-      <h1 className="text-3xl font-bold mb-4">Editar Rutina</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
-        <div>
-          <label className="block text-sm font-medium">Usuario ID</label>
-          <input
-            type="text"
-            value={formData.userId}
-            onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
-            className="w-full p-2 border rounded"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Fecha de Inicio</label>
-          <input
-            type="date"
-            value={formData.startDate}
-            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-            className="w-full p-2 border rounded"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Fecha de Fin</label>
-          <input
-            type="date"
-            value={formData.endDate}
-            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-            className="w-full p-2 border rounded"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Estado</label>
-          <select
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="w-full p-2 border rounded"
-          >
-            <option value="ACTIVE">Activa</option>
-            <option value="COMPLETED">Completada</option>
-          </select>
-        </div>
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-          Guardar
-        </button>
-        {message && <p className="text-sm text-gray-600">{message}</p>}
-      </form>
+    <div className="min-h-screen bg-gray-900 text-white relative">
+      <Image
+        src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop"
+        alt="Fondo Gimnasio"
+        layout="fill"
+        objectFit="cover"
+        className="opacity-20 blur-md fixed"
+      />
+      <div className="relative z-10 p-6">
+        <h1 className="text-3xl font-bold text-yellow-400 mb-4">Editar Rutina #{id}</h1>
+        <RoutineGrid routine={routine} exercises={exercises} onSave={handleSave} />
+        {message && <p className="mt-4 text-sm text-yellow-400">{message}</p>}
+      </div>
     </div>
   );
 }
