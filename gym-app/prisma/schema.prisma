@@ -48,9 +48,10 @@ model RoutineExercise {
   id           String       @id @default(uuid())
   routineId    String
   exerciseId   String
-  dayOfWeek    String // Cambiado de DayOfWeek a String
+  dayOfWeek    String
   sets         Int
   reps         Int
+  weight       Float?         // Nuevo campo opcional para el peso
   routine      RoutineHistory @relation(fields: [routineId], references: [id])
   exercise     Exercise      @relation(fields: [exerciseId], references: [id])
 }

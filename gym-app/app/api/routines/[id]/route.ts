@@ -26,7 +26,6 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
 
   const { startDate, endDate, status, routineExercises } = await req.json();
 
-  // Actualizar rutina
   const updatedRoutine = await prisma.routineHistory.update({
     where: { id: params.id },
     data: {
@@ -34,12 +33,13 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
       endDate: endDate ? new Date(endDate) : null,
       status,
       routineExercises: {
-        deleteMany: {}, // Eliminar existentes
+        deleteMany: {},
         create: routineExercises.map((re) => ({
           dayOfWeek: re.dayOfWeek,
           exerciseId: re.exerciseId,
           sets: re.sets,
           reps: re.reps,
+          weight: re.weight || null, // Nuevo campo
         })),
       },
     },
