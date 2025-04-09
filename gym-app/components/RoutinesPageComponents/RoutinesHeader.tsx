@@ -4,7 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import Image from 'next/image';
 import { FaUserCircle } from 'react-icons/fa';
 
-export default function RoutinesHeader({ onUserSelect, onFilterChange }) {
+export default function RoutinesHeader({ onUserSelect, onSearchChange }) {
   const { userId } = useAuth();
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,8 +24,13 @@ export default function RoutinesHeader({ onUserSelect, onFilterChange }) {
 
   const handleUserSelect = (user) => {
     setSelectedUser(user);
-    setSearchTerm(user.name); // Autocompletar la barra de búsqueda
+    setSearchTerm(user.name);
     onUserSelect(user.id);
+  };
+
+  const handleSearchChange = (term) => {
+    setSearchTerm(term);
+    onSearchChange(term); // Notificar el cambio de búsqueda
   };
 
   if (!userId) return <div className="p-4 text-yellow-400">Inicia sesión para gestionar rutinas.</div>;
@@ -40,7 +45,7 @@ export default function RoutinesHeader({ onUserSelect, onFilterChange }) {
             type="text"
             placeholder="Buscar alumno por nombre o email..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full p-3 rounded-lg bg-gray-700 text-white border border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
         </div>
@@ -53,17 +58,19 @@ export default function RoutinesHeader({ onUserSelect, onFilterChange }) {
               onClick={() => handleUserSelect(user)}
               className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity min-w-[100px]"
             >
-              {user.profilePictureUrl ? (
-                <Image
-                  src={user.profilePictureUrl}
-                  alt={user.name}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-              ) : (
-                <FaUserCircle className="text-yellow-400 text-4xl" />
-              )}
+              <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-600">
+                {user.profilePictureUrl ? (
+                  <Image
+                    src={user.profilePictureUrl}
+                    alt={user.name}
+                    width={40}
+                    height={40}
+                    objectFit="cover" // Ajustar la imagen al contenedor
+                  />
+                ) : (
+                  <FaUserCircle className="text-yellow-400 text-4xl" />
+                )}
+              </div>
               <p className="text-sm text-yellow-400 mt-1 text-center">{user.name}</p>
             </div>
           ))}
@@ -73,19 +80,19 @@ export default function RoutinesHeader({ onUserSelect, onFilterChange }) {
         {selectedUser && (
           <div className="flex space-x-4">
             <button
-              onClick={() => onFilterChange('ACTIVE')}
+              onClick={() => onUserSelect(selectedUser.id, 'ACTIVE')}
               className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors"
             >
               Activas
             </button>
             <button
-              onClick={() => onFilterChange('COMPLETED')}
+              onClick={() => onUserSelect(selectedUser.id, 'COMPLETED')}
               className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors"
             >
               Completadas
             </button>
             <button
-              onClick={() => onFilterChange(null)}
+              onClick={() => onUserSelect(selectedUser.id, null)}
               className="bg-gray-700 text-yellow-400 px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
             >
               Todas
