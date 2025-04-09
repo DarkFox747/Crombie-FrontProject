@@ -35,43 +35,30 @@ model Exercise {
 }
 
 model RoutineHistory {
-  id           String       @id @default(uuid())
-  userId       String
-  user         User         @relation(fields: [userId], references: [id])
-  createdBy    String       // ID del profesor que asignó la rutina
-  createdAt    DateTime     @default(now())
-  startDate    DateTime     // Fecha de inicio
-  endDate      DateTime?    // Fecha de fin (opcional)
-  status       RoutineStatus @default(ACTIVE) // Estado de la rutina
+  id               String           @id @default(uuid())
+  userId           String
+  startDate        DateTime
+  endDate          DateTime?
+  status           String
   routineExercises RoutineExercise[]
+  user             User             @relation(fields: [userId], references: [id])
 }
 
 model RoutineExercise {
   id           String       @id @default(uuid())
   routineId    String
-  routine      RoutineHistory @relation(fields: [routineId], references: [id])
   exerciseId   String
-  exercise     Exercise     @relation(fields: [exerciseId], references: [id])
-  dayOfWeek    DayOfWeek    // Día de la semana
-  sets         Int          // Número de series
-  reps         Int          // Número de repeticiones
-  notes        String?      // Notas opcionales
+  dayOfWeek    String // Cambiado de DayOfWeek a String
+  sets         Int
+  reps         Int
+  routine      RoutineHistory @relation(fields: [routineId], references: [id])
+  exercise     Exercise      @relation(fields: [exerciseId], references: [id])
 }
 
 enum Role {
   ALUMNO
   PROFESSOR
   ADMIN
-}
-
-enum DayOfWeek {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-  SUNDAY
 }
 
 enum RoutineStatus {

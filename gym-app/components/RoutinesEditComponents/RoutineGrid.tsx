@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { FaPlus, FaMinus, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaTrash } from 'react-icons/fa';
 
 export default function RoutineGrid({ routine, exercises, onSave }) {
   const [days, setDays] = useState(
@@ -106,7 +106,7 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
               type="text"
               value={day}
               onChange={(e) => {
-                const newDayName = e.target.value.trim();
+                const newDayName = e.target.value;
                 if (newDayName && !days[newDayName] && newDayName !== day) {
                   setDays((prev) => {
                     const newDays = { ...prev };
@@ -116,15 +116,26 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                   });
                 }
               }}
-              className="text-xl font-semibold text-yellow-400 bg-gray-700 border border-yellow-500 rounded p-1 w-1/2"
+              onKeyDown={(e) => e.stopPropagation()} // Evitar pérdida de foco
+              className="text-xl font-semibold text-yellow-400 bg-gray-700 border border-yellow-500 rounded p-1 w-1/2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
-            <button
-              onClick={() => removeDay(day)}
-              className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
-              title="Eliminar Día"
-            >
-              <FaTrash />
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => addExercise(day)}
+                className="bg-yellow-500 text-gray-900 px-3 py-1 rounded-lg hover:bg-yellow-400 transition-colors flex items-center space-x-1"
+                title="Agregar Ejercicio"
+              >
+                <FaPlus />
+                <span>Agregar Ejercicio</span>
+              </button>
+              <button
+                onClick={() => removeDay(day)}
+                className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
+                title="Eliminar Día"
+              >
+                <FaTrash />
+              </button>
+            </div>
           </div>
 
           {/* Ejercicios */}
@@ -178,22 +189,13 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                       className="w-16 p-2 bg-gray-600 text-white border border-yellow-500 rounded"
                     />
                   </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => addExercise(day)}
-                      className="bg-yellow-500 text-gray-900 p-2 rounded-lg hover:bg-yellow-400 transition-colors"
-                      title="Agregar Ejercicio"
-                    >
-                      <FaPlus />
-                    </button>
-                    <button
-                      onClick={() => removeExercise(day, index)}
-                      className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
-                      title="Eliminar Ejercicio"
-                    >
-                      <FaMinus />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => removeExercise(day, index)}
+                    className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
+                    title="Eliminar Ejercicio"
+                  >
+                    <FaTrash />
+                  </button>
                 </div>
               );
             })
