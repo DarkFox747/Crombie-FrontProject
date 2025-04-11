@@ -160,7 +160,7 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
       </div>
 
       {/* Lista de días */}
-      <div className="space-y-6">
+      <div className="space-y-6 relative">
         {Object.entries(days).length === 0 ? (
           <div className="p-8 text-center bg-gray-700 rounded-lg text-gray-300">
             <p className="text-lg">No hay días configurados</p>
@@ -257,16 +257,20 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                                   className="w-full p-2 bg-gray-700 text-white border border-yellow-500 rounded-lg"
                                 />
                                 {openDropdowns[rowKey] && (
-                                  <ul className="absolute z-30 mt-1 max-h-40 overflow-y-auto bg-gray-700 rounded-lg w-full shadow-lg">
-                                    {filteredExercises(searchTerm).map((exercise) => (
-                                      <li
-                                        key={exercise.id}
-                                        onClick={() => updateExercise(day, exerciseIndex, exercise.id)}
-                                        className="p-2 hover:bg-yellow-500 hover:text-gray-900 cursor-pointer"
-                                      >
-                                        {exercise.name}
-                                      </li>
-                                    ))}
+                                  <ul className="absolute z-50 mt-1 max-h-64 overflow-y-auto bg-gray-700 rounded-lg w-full shadow-lg border border-yellow-400">
+                                    {filteredExercises(searchTerm).length > 0 ? (
+                                      filteredExercises(searchTerm).map((exercise) => (
+                                        <li
+                                          key={exercise.id}
+                                          onClick={() => updateExercise(day, exerciseIndex, exercise.id)}
+                                          className="p-2 hover:bg-yellow-500 hover:text-gray-900 cursor-pointer"
+                                        >
+                                          {exercise.name}
+                                        </li>
+                                      ))
+                                    ) : (
+                                      <li className="p-2 text-gray-400 italic">No se encontraron ejercicios</li>
+                                    )}
                                   </ul>
                                 )}
                               </div>
@@ -415,16 +419,20 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                                     className="w-full p-1 bg-gray-600 text-white border border-yellow-500 rounded"
                                   />
                                   {openDropdowns[rowKey] && (
-                                    <ul className="absolute z-30 mt-1 max-h-48 overflow-y-auto bg-gray-700 rounded-lg w-full shadow-lg">
-                                      {filteredExercises(searchTerm).map((exercise) => (
-                                        <li
-                                          key={exercise.id}
-                                          onClick={() => updateExercise(day, exerciseIndex, exercise.id)}
-                                          className="p-2 hover:bg-yellow-500 hover:text-gray-900 cursor-pointer"
-                                        >
-                                          {exercise.name}
-                                        </li>
-                                      ))}
+                                    <ul className="fixed z-50 mt-1 max-h-64 overflow-y-auto bg-gray-700 rounded-lg shadow-lg border border-yellow-400 w-64">
+                                      {filteredExercises(searchTerm).length > 0 ? (
+                                        filteredExercises(searchTerm).map((exercise) => (
+                                          <li
+                                            key={exercise.id}
+                                            onClick={() => updateExercise(day, exerciseIndex, exercise.id)}
+                                            className="p-2 hover:bg-yellow-500 hover:text-gray-900 cursor-pointer"
+                                          >
+                                            {exercise.name}
+                                          </li>
+                                        ))
+                                      ) : (
+                                        <li className="p-2 text-gray-400 italic">No se encontraron ejercicios</li>
+                                      )}
                                     </ul>
                                   )}
                                 </td>
