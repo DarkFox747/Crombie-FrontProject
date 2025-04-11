@@ -60,7 +60,8 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
       );
       return { ...prev, [day]: updatedDay };
     });
-    setSearchTerms((prev) => ({ ...prev, [`${day}-${index}`]: '' }));
+    // Establecemos el searchTerm como undefined para que se muestre el ejercicio seleccionado
+    setSearchTerms((prev) => ({ ...prev, [`${day}-${index}`]: undefined }));
     setOpenDropdowns((prev) => ({ ...prev, [`${day}-${index}`]: false }));
   };
 
@@ -237,7 +238,7 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                     <div className="md:hidden space-y-4">
                       {dayExercises.map((ex, exerciseIndex) => {
                         const rowKey = `${day}-${exerciseIndex}`;
-                        const searchTerm = searchTerms[rowKey] || '';
+                        const searchTerm = searchTerms[rowKey];
                         const exerciseName = exercises.find((e) => e.id === ex.exerciseId)?.name || '';
                         
                         return (
@@ -246,13 +247,25 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                               <div className="relative w-full">
                                 <input
                                   type="text"
-                                  value={searchTerm || exerciseName}
+                                  value={searchTerm !== undefined ? searchTerm : exerciseName}
                                   onChange={(e) => {
-                                    setSearchTerms({ ...searchTerms, [rowKey]: e.target.value });
-                                    setOpenDropdowns({ ...openDropdowns, [rowKey]: true });
+                                    setSearchTerms((prev) => ({ ...prev, [rowKey]: e.target.value }));
+                                    setOpenDropdowns((prev) => ({ ...prev, [rowKey]: true }));
                                   }}
-                                  onFocus={() => setOpenDropdowns({ ...openDropdowns, [rowKey]: true })}
-                                  onBlur={() => setTimeout(() => setOpenDropdowns({ ...openDropdowns, [rowKey]: false }), 200)}
+                                  onFocus={(e) => {
+                                    // Al enfocar, siempre usamos el searchTerm actual y no el nombre del ejercicio
+                                    if (searchTerm === undefined) {
+                                      setSearchTerms((prev) => ({ ...prev, [rowKey]: '' }));
+                                    }
+                                    setOpenDropdowns((prev) => ({ ...prev, [rowKey]: true }));
+                                  }}
+                                  onBlur={() => setTimeout(() => {
+                                    if (!searchTerms[rowKey]) {
+                                      // Si no hay término de búsqueda al perder el foco, mostrar el ejercicio seleccionado
+                                      setSearchTerms((prev) => ({ ...prev, [rowKey]: undefined }));
+                                    }
+                                    setOpenDropdowns((prev) => ({ ...prev, [rowKey]: false }));
+                                  }, 200)}
                                   placeholder="Buscar ejercicio..."
                                   className="w-full p-2 bg-gray-700 text-white border border-yellow-500 rounded-lg"
                                 />
@@ -402,19 +415,31 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                         <tbody>
                           {dayExercises.map((ex, exerciseIndex) => {
                             const rowKey = `${day}-${exerciseIndex}`;
-                            const searchTerm = searchTerms[rowKey] || '';
+                            const searchTerm = searchTerms[rowKey];
                             return (
                               <tr key={rowKey} className="border border-gray-500 hover:bg-gray-600">
                                 <td className="border border-gray-500 p-2 relative">
                                   <input
                                     type="text"
-                                    value={searchTerm || exercises.find((e) => e.id === ex.exerciseId)?.name || ''}
+                                    value={searchTerm !== undefined ? searchTerm : exercises.find((e) => e.id === ex.exerciseId)?.name || ''}
                                     onChange={(e) => {
-                                      setSearchTerms({ ...searchTerms, [rowKey]: e.target.value });
-                                      setOpenDropdowns({ ...openDropdowns, [rowKey]: true });
+                                      setSearchTerms((prev) => ({ ...prev, [rowKey]: e.target.value }));
+                                      setOpenDropdowns((prev) => ({ ...prev, [rowKey]: true }));
                                     }}
-                                    onFocus={() => setOpenDropdowns({ ...openDropdowns, [rowKey]: true })}
-                                    onBlur={() => setTimeout(() => setOpenDropdowns({ ...openDropdowns, [rowKey]: false }), 200)}
+                                    onFocus={(e) => {
+                                      // Al enfocar, siempre usamos el searchTerm actual y no el nombre del ejercicio
+                                      if (searchTerm === undefined) {
+                                        setSearchTerms((prev) => ({ ...prev, [rowKey]: '' }));
+                                      }
+                                      setOpenDropdowns((prev) => ({ ...prev, [rowKey]: true }));
+                                    }}
+                                    onBlur={() => setTimeout(() => {
+                                      if (!searchTerms[rowKey]) {
+                                        // Si no hay término de búsqueda al perder el foco, mostrar el ejercicio seleccionado
+                                        setSearchTerms((prev) => ({ ...prev, [rowKey]: undefined }));
+                                      }
+                                      setOpenDropdowns((prev) => ({ ...prev, [rowKey]: false }));
+                                    }, 200)}
                                     placeholder="Buscar ejercicio..."
                                     className="w-full p-1 bg-gray-600 text-white border border-yellow-500 rounded"
                                   />
