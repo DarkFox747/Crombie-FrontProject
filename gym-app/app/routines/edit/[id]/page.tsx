@@ -73,6 +73,28 @@ export default function RoutineEditor({ params }: { params: { id: string } }) {
     }
   };
 
+  const handleComplete = async () => {
+    try {
+      const response = await fetch(`/api/routines/${routineId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...routine,
+          status: 'COMPLETED',
+          routineExercises: routine.routineExercises || [],
+        }),
+      });
+  
+      if (response.ok) {
+        router.push('/routines');
+      } else {
+        console.error('No se pudo completar la rutina');
+      }
+    } catch (error) {
+      console.error('Error al completar rutina:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
@@ -88,6 +110,16 @@ export default function RoutineEditor({ params }: { params: { id: string } }) {
         exercises={exercises} 
         onSave={handleSave} 
       />
+      {routine?.status !== 'COMPLETED' && (
+  <div className="mt-6 text-right">
+    <button
+      onClick={handleComplete}
+      className="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded"
+    >
+      Marcar como completada
+    </button>
+  </div>
+    )}
     </div>
   );
 }

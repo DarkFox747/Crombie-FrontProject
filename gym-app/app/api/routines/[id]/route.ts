@@ -48,3 +48,33 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
 
   return NextResponse.json(updatedRoutine);
 }
+
+export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
+  const authData = await auth();
+  const { userId } = authData;
+
+  if (!userId) return new Response('No autenticado', { status: 401 });
+
+  const requester = await prisma.user.findUnique({ where: { id: userId } });
+  if (!requester || requester.role !== 'PROFESSOR') {
+    return new Response('No autorizado', { status: 403 });
+  }
+
+  try {
+    // Primero borramos los ejercicios relacionados
+    await prisma.routineExercise.deleteMany({
+      where: { routineId: params.id }
+    });
+
+    // Luego borramos la rutina
+    await prisma.routineHistory.delete({
+      where: { id: params.id }
+    });
+
+    return new Response('Rutina eliminada correctamente', { status: 200 });
+  } catch (error) {
+    console.error('Error eliminando rutina:', error);
+    return new Response('Error interno del servidor', { status: 500 });
+  }
+}

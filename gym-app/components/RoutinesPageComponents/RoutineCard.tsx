@@ -1,8 +1,11 @@
 "use client";
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
 
 export default function RoutineCard({ routine, userName }) {
   // Agrupar ejercicios únicos por día
+  const router = useRouter();
   const exercisesByDay = routine.routineExercises.reduce((acc, exercise) => {
     const day = exercise.dayOfWeek;
     const exerciseName = exercise.exercise.name;
@@ -55,12 +58,38 @@ export default function RoutineCard({ routine, userName }) {
             </p>
           </div>
         </div>
-        <Link
-          href={`/routines/edit/${routine.id}`}
-          className="text-yellow-400 hover:text-yellow-300 underline whitespace-nowrap"
-        >
-          Editar Rutina
-        </Link>
+        <div className="flex gap-2">
+  <button
+    onClick={() => router.push(`/routines/edit/${routine.id}`)}
+    className="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold py-1 px-3 rounded text-sm"
+  >
+    Editar Rutina
+  </button>
+  <button
+    onClick={async () => {
+      const confirmDelete = window.confirm("¿Estás seguro de que querés eliminar esta rutina?");
+      if (!confirmDelete) return;
+
+      try {
+        const res = await fetch(`/api/routines/${routine.id}`, {
+          method: 'DELETE',
+        });
+
+        if (res.ok) {
+          window.location.reload(); // O mejor: actualizar el estado del padre si se desea
+        } else {
+          console.error('Error al eliminar rutina');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }}
+    className="bg-red-600 hover:bg-red-500 text-white font-semibold py-1 px-3 rounded text-sm"
+  >
+    Eliminar
+  </button>
+</div>
+
       </div>
 
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">

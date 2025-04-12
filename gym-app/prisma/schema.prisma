@@ -29,7 +29,8 @@ model Exercise {
   id           String       @id @default(uuid())
   name         String       @unique
   description  String?
-  createdBy    String?      // ID del profesor que lo creó (opcional)
+  videoUrl     String?
+  createdBy    String?      
   createdAt    DateTime     @default(now())
   routineExercises RoutineExercise[]
 }

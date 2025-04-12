@@ -1,11 +1,12 @@
-"use client";
-import { useState, useEffect } from 'react';
+'use client';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
+import ExerciseForm from '@/components/ExercisesPage/ExerciseForm';
+import ExerciseList from '@/components/ExercisesPage/ExerciseList';
 
 export default function Exercises() {
   const { userId } = useAuth();
   const [exercises, setExercises] = useState([]);
-  const [formData, setFormData] = useState({ name: '', description: '' });
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -18,16 +19,15 @@ export default function Exercises() {
     setExercises(data);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (formData) => {
     const res = await fetch('/api/exercises', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
     });
+
     if (res.ok) {
       setMessage('Ejercicio creado');
-      setFormData({ name: '', description: '' });
       fetchExercises();
     } else {
       setMessage('Error al crear');
@@ -44,52 +44,14 @@ export default function Exercises() {
     }
   };
 
-  if (!userId) return <div className="p-4">Inicia sesión para ver ejercicios.</div>;
+  if (!userId) return <div className="p-4 text-white">Inicia sesión para ver ejercicios.</div>;
 
   return (
-    <div className="min-h-screen p-4">
-      <h1 className="text-3xl font-bold mb-4">Ejercicios</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md mb-6">
-        <div>
-          <label className="block text-sm font-medium">Nombre</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full p-2 border rounded"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Descripción</label>
-          <input
-            type="text"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full p-2 border rounded"
-          />
-        </div>
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-          Crear Ejercicio
-        </button>
-        {message && <p className="text-sm text-gray-600">{message}</p>}
-      </form>
-
-      <ul className="space-y-4">
-        {exercises.map((exercise) => (
-          <li key={exercise.id} className="border p-4 rounded flex justify-between">
-            <div>
-              <strong>{exercise.name}</strong>
-              <p>{exercise.description}</p>
-            </div>
-            <button
-              onClick={() => handleDelete(exercise.id)}
-              className="text-red-500 hover:underline"
-            >
-              Eliminar
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="min-h-screen bg-gray-900 text-white py-8 px-4 md:px-10">
+      <h1 className="text-3xl font-bold mb-6 text-yellow-400">Gestión de Ejercicios</h1>
+      <ExerciseForm onSubmit={handleSubmit} />
+      {message && <p className="text-sm text-green-400 mt-2">{message}</p>}
+      <ExerciseList exercises={exercises} onDelete={handleDelete} />
     </div>
   );
 }
