@@ -1,72 +1,93 @@
-"use client";
-import { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/nextjs';
-import { useParams } from 'next/navigation';
-import Image from 'next/image';
-import RoutineGrid from '../../../../components/RoutinesEditComponents/RoutineGrid';
+// app/routines/edit/[id]/page.tsx
+'use client';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, use } from 'react';
+import RoutineGrid from '@/components/RoutinesEditComponents/RoutineGrid';
 
-export default function EditRoutine() {
-  const { userId } = useAuth();
-  const { id } = useParams();
-  const [routine, setRoutine] = useState(null);
-  const [exercises, setExercises] = useState([]);
-  const [message, setMessage] = useState('');
+export default function RoutineEditor({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get('userId');
+  const [routine, setRoutine] = useState<any>(null);
+  const [exercises, setExercises] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Usamos use() para unwrap params
+  
+  const routineId = params.id;
 
   useEffect(() => {
-    if (id) {
-      fetchRoutine();
-      fetchExercises();
+    const fetchData = async () => {
+      try {
+        // Cargar ejercicios
+        const exercisesRes = await fetch('/api/exercises');
+        const exercisesData = await exercisesRes.json();
+        setExercises(exercisesData);
+
+        if (routineId === 'new') {
+          setRoutine({
+            id: 'new',
+            userId,
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: '',
+            status: 'ACTIVE',
+            routineExercises: [],
+          });
+        } else {
+          const routineRes = await fetch(`/api/routines/${routineId}`);
+          const routineData = await routineRes.json();
+          setRoutine(routineData);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [routineId, userId]); // Usamos routineId en lugar de params.id
+
+  const handleSave = async (routineExercises: any) => {
+    try {
+      const url = routineId === 'new' ? '/api/routines' : `/api/routines/${routineId}`;
+      const method = routineId === 'new' ? 'POST' : 'PUT';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          startDate: routine.startDate,
+          endDate: routine.endDate || null,
+          status: routine.status || 'ACTIVE',
+          routineExercises,
+        }),
+      });
+
+      if (response.ok) {
+        router.push('/routines');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
     }
-  }, [id]);
-
-  const fetchRoutine = async () => {
-    const res = await fetch(`/api/routines/${id}`);
-    const data = await res.json();
-    setRoutine(data);
   };
 
-  const fetchExercises = async () => {
-    const res = await fetch('/api/exercises');
-    const data = await res.json();
-    setExercises(data);
-  };
-
-  const handleSave = async (updatedRoutineExercises) => {
-    const res = await fetch(`/api/routines/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        startDate: routine.startDate,
-        endDate: routine.endDate,
-        status: routine.status,
-        routineExercises: updatedRoutineExercises,
-      }),
-    });
-    if (res.ok) {
-      setMessage('Rutina actualizada');
-      fetchRoutine();
-    } else {
-      setMessage('Error al actualizar');
-    }
-  };
-
-  if (!userId) return <div className="p-4 text-yellow-400">Inicia sesión para editar.</div>;
-  if (!routine) return <div className="p-4 text-yellow-400">Cargando...</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white relative">
-      <Image
-        src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop"
-        alt="Fondo Gimnasio"
-        layout="fill"
-        objectFit="cover"
-        className="opacity-20 blur-md fixed"
+    <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6">
+      <RoutineGrid 
+        routine={routine} 
+        exercises={exercises} 
+        onSave={handleSave} 
       />
-      <div className="relative z-10 p-6">
-        <h1 className="text-3xl font-bold text-yellow-400 mb-4">Editar Rutina #{id}</h1>
-        <RoutineGrid routine={routine} exercises={exercises} onSave={handleSave} />
-        {message && <p className="mt-4 text-sm text-yellow-400">{message}</p>}
-      </div>
     </div>
   );
 }

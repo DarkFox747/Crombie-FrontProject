@@ -1,21 +1,16 @@
-"use client";
+// app/routines/page.tsx
+'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import RoutinesHeader from '../../components/RoutinesPageComponents/RoutinesHeader';
 import RoutinesList from '../../components/RoutinesPageComponents/RoutinesList';
+import CreateRoutineModal from '../../components/RoutinesPageComponents/CreateRoutineModal';
 
 export default function Routines() {
   const [routines, setRoutines] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [users, setUsers] = useState([]);
-
-  useEffect(() => {
-    fetch('/api/users')
-      .then((res) => res.json())
-      .then((data) => setUsers(data));
-  }, []);
 
   useEffect(() => {
     fetchRoutines();
@@ -29,16 +24,12 @@ export default function Routines() {
     const res = await fetch(`/api/routines?${params.toString()}`);
     let data = await res.json();
 
-    // Filtrar por nombre de usuario si hay un término de búsqueda y no hay usuario seleccionado
     if (searchTerm && !selectedUserId) {
-      const filteredUserIds = users
-        .filter(
-          (user) =>
-            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .map((user) => user.id);
-      data = data.filter((routine) => filteredUserIds.includes(routine.userId));
+      // Primero buscamos usuarios que coincidan
+      const usersRes = await fetch(`/api/users?search=${encodeURIComponent(searchTerm)}`);
+      const users = await usersRes.json();
+      const filteredUserIds = users.map(user => user.id);
+      data = data.filter(routine => filteredUserIds.includes(routine.userId));
     }
 
     setRoutines(data);
@@ -51,7 +42,7 @@ export default function Routines() {
 
   const handleSearchChange = (term) => {
     setSearchTerm(term);
-    setSelectedUserId(null); // Resetear selección al buscar manualmente
+    setSelectedUserId(null);
     setFilterStatus(null);
   };
 
@@ -64,9 +55,10 @@ export default function Routines() {
         objectFit="cover"
         className="opacity-20 blur-md fixed"
       />
-      <div className="relative z-10">
+      <div className="relative z-10 pb-20">
         <RoutinesHeader onUserSelect={handleUserSelect} onSearchChange={handleSearchChange} />
         <RoutinesList routines={routines} />
+        <CreateRoutineModal />
       </div>
     </div>
   );

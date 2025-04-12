@@ -1,22 +1,24 @@
-// components/RoutinesPageComponents/RoutineCard.tsx
 "use client";
 import Link from 'next/link';
 
-// Eliminamos el array daysOfWeek estático ya que usaremos los valores de la DB
-
 export default function RoutineCard({ routine, userName }) {
-  // Agrupar ejercicios por día manteniendo el formato de dayOfWeek de la DB
+  // Agrupar ejercicios únicos por día
   const exercisesByDay = routine.routineExercises.reduce((acc, exercise) => {
-    if (!acc[exercise.dayOfWeek]) {
-      acc[exercise.dayOfWeek] = [];
+    const day = exercise.dayOfWeek;
+    const exerciseName = exercise.exercise.name;
+
+    if (!acc[day]) acc[day] = new Map();
+
+    // Solo agregamos si aún no existe ese ejercicio por nombre
+    if (!acc[day].has(exerciseName)) {
+      acc[day].set(exerciseName, exercise);
     }
-    acc[exercise.dayOfWeek].push(exercise);
+
     return acc;
   }, {});
 
-  // Función para formatear el estado de la rutina según el enum
   const formatStatus = (status) => {
-    switch(status) {
+    switch (status) {
       case 'ACTIVE':
         return 'Activa';
       case 'COMPLETED':
@@ -44,8 +46,8 @@ export default function RoutineCard({ routine, userName }) {
             )}
             <p className="text-sm text-gray-300">
               Estado: <span className={
-                routine.status === 'ACTIVE' ? 'text-green-400' : 
-                routine.status === 'COMPLETED' ? 'text-blue-400' : 
+                routine.status === 'ACTIVE' ? 'text-green-400' :
+                routine.status === 'COMPLETED' ? 'text-blue-400' :
                 'text-yellow-400'
               }>
                 {formatStatus(routine.status)}
@@ -60,19 +62,15 @@ export default function RoutineCard({ routine, userName }) {
           Editar Rutina
         </Link>
       </div>
-      
+
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {Object.entries(exercisesByDay).map(([day, exercises]) => (
+        {Object.entries(exercisesByDay).map(([day, exerciseMap]) => (
           <div key={day} className="bg-gray-600 bg-opacity-50 rounded-lg p-3">
-            <h4 className="font-medium text-yellow-400 mb-2">
-              {day} {/* Mostramos directamente el valor de dayOfWeek de la DB */}
-            </h4>
+            <h4 className="font-medium text-yellow-400 mb-2">{day}</h4>
             <ul className="space-y-2">
-              {exercises.map((ex) => (
-                <li key={ex.id} className="text-sm text-gray-200">
+              {[...exerciseMap.values()].map((ex) => (
+                <li key={ex.exercise.id} className="text-sm text-gray-200">
                   <p className="font-medium">{ex.exercise.name}</p>
-                  <p>{ex.sets} series x {ex.reps} reps</p>
-                  {ex.weight && <p>Peso: {ex.weight} kg</p>}
                 </li>
               ))}
             </ul>
