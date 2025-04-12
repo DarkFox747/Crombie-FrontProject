@@ -138,7 +138,6 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
   return (
     <div className="p-4 md:p-6 bg-gray-800 bg-opacity-80 backdrop-blur-md rounded-lg shadow-xl">
       <h2 className="text-xl md:text-2xl font-bold text-yellow-400 mb-4 flex items-center">
-        <span className="material-icons mr-2">fitness_center</span>
         Editar Rutina
       </h2>
       
@@ -507,7 +506,7 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
           onClick={handleSave}
           className="bg-yellow-500 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-yellow-400 transition-colors shadow-lg flex items-center"
         >
-          <span className="material-icons mr-2">save</span> Guardar Cambios
+          Guardar Cambios
         </button>
       </div>
     </div>
