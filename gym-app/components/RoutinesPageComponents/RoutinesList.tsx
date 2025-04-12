@@ -1,8 +1,9 @@
+// components/RoutinesPageComponents/RoutinesList.tsx
 "use client";
 import { useState, useEffect } from 'react';
 import RoutineCard from './RoutineCard';
 
-export default function RoutinesList({ routines, pageSize = 10 }) {
+export default function RoutinesList({ routines, pageSize = 6 }) {
   const [users, setUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -13,7 +14,12 @@ export default function RoutinesList({ routines, pageSize = 10 }) {
   }, []);
 
   if (!routines || routines.length === 0) {
-    return <p className="p-6 text-yellow-400">No hay rutinas para mostrar.</p>;
+    return (
+      <div className="p-6 text-center">
+        <p className="text-yellow-400">No hay rutinas para mostrar.</p>
+        <p className="text-gray-400 mt-2">Selecciona un alumno o crea una nueva rutina.</p>
+      </div>
+    );
   }
 
   const getUserName = (userId) => {
@@ -21,9 +27,18 @@ export default function RoutinesList({ routines, pageSize = 10 }) {
     return user ? user.name : 'Usuario desconocido';
   };
 
-  const totalPages = Math.ceil(routines.length / pageSize);
+  // Ordenar rutinas: activas primero, luego planificadas y finalmente completadas
+  const sortedRoutines = [...routines].sort((a, b) => {
+    if (a.status === 'ACTIVE') return -1;
+    if (b.status === 'ACTIVE') return 1;
+    if (a.status === 'PLANNED') return -1;
+    if (b.status === 'PLANNED') return 1;
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedRoutines.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
-  const paginatedRoutines = routines.slice(startIndex, startIndex + pageSize);
+  const paginatedRoutines = sortedRoutines.slice(startIndex, startIndex + pageSize);
 
   const PaginationButtons = () => (
     <div className="flex justify-center space-x-4 mt-4">
