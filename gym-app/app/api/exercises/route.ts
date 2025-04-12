@@ -18,11 +18,18 @@ export async function POST(req: Request) {
     return new Response('No autorizado', { status: 403 });
   }
 
-  const { name, description } = await req.json();
+  const { name, description, videoUrl } = await req.json();
+
   if (!name) return new Response('Nombre requerido', { status: 400 });
 
   const exercise = await prisma.exercise.create({
-    data: { name, description, createdBy: userId },
+    data: {
+      name,
+      description,
+      videoUrl: videoUrl || null,
+      createdBy: userId,
+    },
   });
+
   return NextResponse.json(exercise, { status: 201 });
 }

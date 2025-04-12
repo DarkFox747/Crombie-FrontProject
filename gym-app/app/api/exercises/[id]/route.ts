@@ -13,11 +13,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return new Response('No autorizado', { status: 403 });
   }
 
-  const { name, description } = await req.json();
+  const { name, description, videoUrl } = await req.json();
+
   const exercise = await prisma.exercise.update({
     where: { id: params.id },
-    data: { name, description },
+    data: {
+      name,
+      description,
+      videoUrl: videoUrl || null,
+    },
   });
+
   return NextResponse.json(exercise);
 }
 
