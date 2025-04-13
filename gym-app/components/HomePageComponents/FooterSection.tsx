@@ -3,7 +3,7 @@ import { FaInstagram, FaFacebook, FaTwitter, FaYoutube } from 'react-icons/fa';
 
 export default function FooterSection() {
   return (
-    <footer className="py-8 bg-gray-900 text-center">
+    <footer className="py-8 bg-gray-800 text-center">
       <div className="flex justify-center space-x-6 mb-4">
         <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
           <FaInstagram className="text-3xl hover:text-red-600 transition-colors" />

@@ -3,7 +3,7 @@ import HeroSection from '../components/HomePageComponents/HeroSection';
 import AboutSection from '../components/HomePageComponents/AboutSection';
 import ServicesSection from '../components/HomePageComponents/ServicesSection';
 import GallerySection from '../components/HomePageComponents/GallerySection';
-import FooterSection from '../components/HomePageComponents/FooterSection';
+
 
 export default function Home() {
   return (
@@ -12,7 +12,7 @@ export default function Home() {
       <AboutSection />
       <ServicesSection />
       <GallerySection />
-      <FooterSection />
+      
     </div>
   );
 }
