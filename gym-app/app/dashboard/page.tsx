@@ -1,76 +1,36 @@
-import { auth } from '@clerk/nextjs/server';
-import prisma from '../../lib/prisma';
-import SyncButton from '../../components/SyncButton';
+'use client';
+import { useEffect, useState } from 'react';
+import UserForm from '@/components/Admin/UserForm';
+import UserList from '@/components/Admin/UserList';
+import SyncButton from '@/components/SyncButton';
 
-export default async function Dashboard() {
-  const authData = await auth(); // Esperar la resolución de auth()
-  const { userId } = authData;
+export default function DashboardPage() {
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
 
-  if (!userId) {
-    return (
-      <div className="min-h-screen p-4">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p>No estás autenticado. Por favor, inicia sesión.</p>
-      </div>
-    );
-  }
+  const fetchUsers = async () => {
+    const res = await fetch('/api/users');
+    const data = await res.json();
+    setUsers(data);
+  };
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
-
-  // Si el usuario no está sincronizado aún, mostrar mensaje
-  if (!user) {
-    return (
-      <div className="min-h-screen p-4">
-        <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-        <p>Usuario no encontrado en la base de datos. Sincroniza los usuarios primero.</p>
-        <SyncButton />
-      </div>
-    );
-  }
-
-  const routines = await prisma.routineHistory.findMany({
-    where: { userId: user.id },
-    include: {
-      routineExercises: {
-        include: {
-          exercise: true,
-        },
-      },
-    },
-    orderBy: { startDate: 'desc' },
-  });
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   return (
-    <div className="min-h-screen p-4">
-      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-      <p className="text-lg mb-4">Bienvenido, {user.name}</p>
-      <SyncButton />
+    <div className="min-h-screen bg-gray-900 text-white py-10 px-6">
+      <h1 className="text-3xl font-bold text-yellow-400 mb-6">Panel de Administración</h1>
 
-      <h2 className="text-2xl font-semibold mb-2">Tus Rutinas</h2>
-      {routines.length === 0 ? (
-        <p>No hay rutinas asignadas aún.</p>
-      ) : (
-        <ul className="space-y-4">
-          {routines.map((routine) => (
-            <li key={routine.id} className="border p-4 rounded-lg">
-              <strong>
-                Rutina ({routine.status}) - Inicio:{' '}
-                {new Date(routine.startDate).toLocaleDateString()}
-              </strong>
-              <ul className="mt-2 space-y-1">
-                {routine.routineExercises.map((re) => (
-                  <li key={re.id}>
-                    {re.exercise.name} ({re.dayOfWeek}): {re.sets} series x{' '}
-                    {re.reps} reps {re.notes && `- ${re.notes}`}
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ul>
-      )}
+      <SyncButton  />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <UserForm user={selectedUser} onSaved={() => {
+          fetchUsers();
+          setSelectedUser(null);
+        }} />
+        <UserList users={users} onEdit={setSelectedUser} onRefresh={fetchUsers} />
+      </div>
     </div>
   );
 }
