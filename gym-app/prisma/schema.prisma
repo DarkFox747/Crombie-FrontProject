@@ -46,16 +46,25 @@ model RoutineHistory {
 }
 
 model RoutineExercise {
-  id           String       @id @default(uuid())
+  id           String         @id @default(uuid())
   routineId    String
   exerciseId   String
   dayOfWeek    String
-  sets         Int
-  reps         Int
-  weight       Float?         // Nuevo campo opcional para el peso
   routine      RoutineHistory @relation(fields: [routineId], references: [id])
-  exercise     Exercise      @relation(fields: [exerciseId], references: [id])
+  exercise     Exercise       @relation(fields: [exerciseId], references: [id])
+  sets         RoutineSet[]   // RELACIÓN A LOS SETS
 }
+
+model RoutineSet {
+  id               String         @id @default(uuid())
+  routineExerciseId String
+  sets             Int
+  reps             Int
+  weight           Float?
+
+  routineExercise  RoutineExercise @relation(fields: [routineExerciseId], references: [id])
+}
+
 
 enum Role {
   ALUMNO

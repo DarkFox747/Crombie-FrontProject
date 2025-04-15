@@ -3,17 +3,27 @@ import { useState } from 'react';
 import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
 
 export default function RoutineGrid({ routine, exercises, onSave }) {
-  const [days, setDays] = useState(
-    routine.routineExercises.reduce((acc, re) => {
+  const [days, setDays] = useState(() => {
+    const grouped = routine.routineExercises.reduce((acc, re) => {
       if (!acc[re.dayOfWeek]) acc[re.dayOfWeek] = [];
+      
+      // Mapea correctamente los sets desde Prisma
       acc[re.dayOfWeek].push({
         id: re.id,
         exerciseId: re.exerciseId,
-        sets: [{ sets: re.sets, reps: re.reps, weight: re.weight || '' }],
+        sets: re.sets.map(s => ({
+          sets: s.sets,
+          reps: s.reps,
+          weight: s.weight ?? ''
+        }))
       });
+      
       return acc;
-    }, {})
-  );
+    }, {} as Record<string, any[]>);
+    
+    return grouped;
+  });
+  
   const [newDay, setNewDay] = useState('');
   const [searchTerms, setSearchTerms] = useState({});
   const [openDropdowns, setOpenDropdowns] = useState({});
@@ -121,19 +131,21 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
   };
 
   const handleSave = () => {
-    const updatedRoutineExercises = Object.entries(days).flatMap(([day, exercises]) =>
-      exercises.map((ex) =>
-        ex.sets.map((set) => ({
-          dayOfWeek: day,
-          exerciseId: ex.exerciseId,
+    const updatedRoutineExercises = Object.entries(days).map(([day, exercises]) =>
+      exercises.map((ex) => ({
+        dayOfWeek: day,
+        exerciseId: ex.exerciseId,
+        sets: ex.sets.map((set) => ({
           sets: set.sets,
           reps: set.reps,
           weight: set.weight === '' ? null : set.weight,
-        }))
-      )
+        })),
+      }))
     ).flat();
+  
     onSave(updatedRoutineExercises);
   };
+  
 
   return (
     <div className="p-4 md:p-6 bg-gray-800 bg-opacity-80 backdrop-blur-md rounded-lg shadow-xl">
@@ -233,131 +245,141 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    {/* Vista móvil - Cards */}
-                    <div className="md:hidden space-y-4">
-                      {dayExercises.map((ex, exerciseIndex) => {
-                        const rowKey = `${day}-${exerciseIndex}`;
-                        const searchTerm = searchTerms[rowKey];
-                        const exerciseName = exercises.find((e) => e.id === ex.exerciseId)?.name || '';
-                        
-                        return (
-                          <div key={rowKey} className="bg-gray-800 rounded-lg p-3 relative">
-                            <div className="flex justify-between items-center mb-3">
-                              <div className="relative w-full">
-                                <input
-                                  type="text"
-                                  value={searchTerm !== undefined ? searchTerm : exerciseName}
-                                  onChange={(e) => {
-                                    setSearchTerms((prev) => ({ ...prev, [rowKey]: e.target.value }));
-                                    setOpenDropdowns((prev) => ({ ...prev, [rowKey]: true }));
-                                  }}
-                                  onFocus={(e) => {
-                                    // Al enfocar, siempre usamos el searchTerm actual y no el nombre del ejercicio
-                                    if (searchTerm === undefined) {
-                                      setSearchTerms((prev) => ({ ...prev, [rowKey]: '' }));
-                                    }
-                                    setOpenDropdowns((prev) => ({ ...prev, [rowKey]: true }));
-                                  }}
-                                  onBlur={() => setTimeout(() => {
-                                    if (!searchTerms[rowKey]) {
-                                      // Si no hay término de búsqueda al perder el foco, mostrar el ejercicio seleccionado
-                                      setSearchTerms((prev) => ({ ...prev, [rowKey]: undefined }));
-                                    }
-                                    setOpenDropdowns((prev) => ({ ...prev, [rowKey]: false }));
-                                  }, 200)}
-                                  placeholder="Buscar ejercicio..."
-                                  className="w-full p-2 bg-gray-700 text-white border border-yellow-500 rounded-lg"
-                                />
-                                {openDropdowns[rowKey] && (
-                                  <ul className="absolute z-50 mt-1 max-h-64 overflow-y-auto bg-gray-700 rounded-lg w-full shadow-lg border border-yellow-400">
-                                    {filteredExercises(searchTerm).length > 0 ? (
-                                      filteredExercises(searchTerm).map((exercise) => (
-                                        <li
-                                          key={exercise.id}
-                                          onClick={() => updateExercise(day, exerciseIndex, exercise.id)}
-                                          className="p-2 hover:bg-yellow-500 hover:text-gray-900 cursor-pointer"
-                                        >
-                                          {exercise.name}
-                                        </li>
-                                      ))
-                                    ) : (
-                                      <li className="p-2 text-gray-400 italic">No se encontraron ejercicios</li>
-                                    )}
-                                  </ul>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => removeExercise(day, exerciseIndex)}
-                                className="ml-2 bg-red-500 text-white p-1 rounded-lg hover:bg-red-600 transition-colors"
-                              >
-                                <FaTrash size={12} />
-                              </button>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 gap-3">
-                              {ex.sets.map((set, setIndex) => {
-                                const weightKey = `${day}-${exerciseIndex}-${setIndex}`;
-                                return (
-                                  <div key={setIndex} className="bg-gray-700 p-2 rounded-lg">
-                                    <div className="flex justify-between items-center mb-2">
-                                      <div className="text-yellow-400 font-medium">Serie {setIndex + 1}</div>
-                                      {ex.sets.length > 1 && (
-                                        <button
-                                          onClick={() => removeSetColumn(day, setIndex)}
-                                          className="bg-red-500 text-white p-1 rounded hover:bg-red-600 transition-colors"
-                                        >
-                                          <FaTrash size={10} />
-                                        </button>
-                                      )}
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                      <div>
-                                        <label className="text-xs text-gray-400">Series</label>
-                                        <input
-                                          type="number"
-                                          value={set.sets}
-                                          onChange={(e) => updateSetHeader(day, setIndex, 'sets', e.target.value)}
-                                          className="w-full p-1 bg-gray-600 text-white border border-yellow-500 rounded text-center"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="text-xs text-gray-400">Reps</label>
-                                        <input
-                                          type="number"
-                                          value={set.reps}
-                                          onChange={(e) => updateSetHeader(day, setIndex, 'reps', e.target.value)}
-                                          className="w-full p-1 bg-gray-600 text-white border border-yellow-500 rounded text-center"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="text-xs text-gray-400">Peso (kg)</label>
-                                        <input
-                                          type="number"
-                                          step="0.1"
-                                          value={set.weight}
-                                          onChange={(e) => updateWeight(day, exerciseIndex, setIndex, e.target.value)}
-                                          className="w-full p-1 bg-gray-600 text-white border border-yellow-500 rounded text-center"
-                                        />
-                                        {weightErrors[weightKey] && (
-                                          <span className="text-red-500 text-xs">{weightErrors[weightKey]}</span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            
-                            <button
-                              onClick={() => addSetColumn(day)}
-                              className="mt-3 w-full bg-gray-600 text-yellow-400 p-2 rounded-lg hover:bg-gray-500 transition-colors flex items-center justify-center"
-                            >
-                              <FaPlus size={12} className="mr-1" /> Agregar Serie
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
+{/* Vista móvil - Cards con form */}
+<form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="md:hidden space-y-4">
+  {dayExercises.map((ex, exerciseIndex) => {
+    const rowKey = `${day}-${exerciseIndex}`;
+    const searchTerm = searchTerms[rowKey];
+    const exerciseName = exercises.find((e) => e.id === ex.exerciseId)?.name || '';
+
+    return (
+      <fieldset key={rowKey} className="bg-gray-800 rounded-lg p-3 relative border border-yellow-500">
+        <legend className="text-yellow-400 font-semibold mb-2">Ejercicio #{exerciseIndex + 1}</legend>
+
+        <div className="flex justify-between items-center mb-3">
+          <div className="relative w-full">
+            <label htmlFor={`exercise-${rowKey}`} className="sr-only">Buscar ejercicio</label>
+            <input
+              id={`exercise-${rowKey}`}
+              type="text"
+              value={searchTerm !== undefined ? searchTerm : exerciseName}
+              onChange={(e) => {
+                setSearchTerms((prev) => ({ ...prev, [rowKey]: e.target.value }));
+                setOpenDropdowns((prev) => ({ ...prev, [rowKey]: true }));
+              }}
+              onFocus={() => {
+                if (searchTerm === undefined) {
+                  setSearchTerms((prev) => ({ ...prev, [rowKey]: '' }));
+                }
+                setOpenDropdowns((prev) => ({ ...prev, [rowKey]: true }));
+              }}
+              onBlur={() => setTimeout(() => {
+                if (!searchTerms[rowKey]) {
+                  setSearchTerms((prev) => ({ ...prev, [rowKey]: undefined }));
+                }
+                setOpenDropdowns((prev) => ({ ...prev, [rowKey]: false }));
+              }, 200)}
+              placeholder="Buscar ejercicio..."
+              className="w-full p-2 bg-gray-700 text-white border border-yellow-500 rounded-lg"
+            />
+            {openDropdowns[rowKey] && (
+              <ul className="absolute z-50 mt-1 max-h-64 overflow-y-auto bg-gray-700 rounded-lg w-full shadow-lg border border-yellow-400">
+                {filteredExercises(searchTerm).length > 0 ? (
+                  filteredExercises(searchTerm).map((exercise) => (
+                    <li
+                      key={exercise.id}
+                      onClick={() => updateExercise(day, exerciseIndex, exercise.id)}
+                      className="p-2 hover:bg-yellow-500 hover:text-gray-900 cursor-pointer"
+                    >
+                      {exercise.name}
+                    </li>
+                  ))
+                ) : (
+                  <li className="p-2 text-gray-400 italic">No se encontraron ejercicios</li>
+                )}
+              </ul>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => removeExercise(day, exerciseIndex)}
+            className="ml-2 bg-red-500 text-white p-1 rounded-lg hover:bg-red-600 transition-colors"
+            aria-label="Eliminar ejercicio"
+          >
+            <FaTrash size={12} />
+          </button>
+        </div>
+
+        {ex.sets.map((set, setIndex) => {
+          const weightKey = `${day}-${exerciseIndex}-${setIndex}`;
+          return (
+            <div key={setIndex} className="bg-gray-700 p-2 rounded-lg mb-2">
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-yellow-400 font-medium">Serie {setIndex + 1}</label>
+                {ex.sets.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeSetColumn(day, setIndex)}
+                    className="bg-red-500 text-white p-1 rounded hover:bg-red-600 transition-colors"
+                    aria-label="Eliminar serie"
+                  >
+                    <FaTrash size={10} />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label htmlFor={`sets-${rowKey}-${setIndex}`} className="text-xs text-gray-400 block">Series</label>
+                  <input
+                    id={`sets-${rowKey}-${setIndex}`}
+                    type="number"
+                    value={set.sets}
+                    onChange={(e) => updateSetHeader(day, setIndex, 'sets', e.target.value)}
+                    className="w-full p-1 bg-gray-600 text-white border border-yellow-500 rounded text-center"
+                  />
+                </div>
+                <div>
+                  <label htmlFor={`reps-${rowKey}-${setIndex}`} className="text-xs text-gray-400 block">Reps</label>
+                  <input
+                    id={`reps-${rowKey}-${setIndex}`}
+                    type="number"
+                    value={set.reps}
+                    onChange={(e) => updateSetHeader(day, setIndex, 'reps', e.target.value)}
+                    className="w-full p-1 bg-gray-600 text-white border border-yellow-500 rounded text-center"
+                  />
+                </div>
+                <div>
+                  <label htmlFor={`weight-${rowKey}-${setIndex}`} className="text-xs text-gray-400 block">Peso (kg)</label>
+                  <input
+                    id={`weight-${rowKey}-${setIndex}`}
+                    type="number"
+                    step="0.1"
+                    value={set.weight}
+                    onChange={(e) => updateWeight(day, exerciseIndex, setIndex, e.target.value)}
+                    className="w-full p-1 bg-gray-600 text-white border border-yellow-500 rounded text-center"
+                  />
+                  {weightErrors[weightKey] && (
+                    <span className="text-red-500 text-xs">{weightErrors[weightKey]}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        <button
+          type="button"
+          onClick={() => addSetColumn(day)}
+          className="mt-3 w-full bg-gray-600 text-yellow-400 p-2 rounded-lg hover:bg-gray-500 transition-colors flex items-center justify-center"
+        >
+          <FaPlus size={12} className="mr-1" /> Agregar Serie
+        </button>
+      </fieldset>
+    );
+  })}
+</form>
+
                     
                     {/* Vista desktop - Tabla */}
                     <div className="hidden md:block">
