@@ -1,7 +1,16 @@
 import { auth } from '@clerk/nextjs/server';
 import prisma from '../../../../lib/prisma';
 import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
+
+interface ExercisesGrouped{
+  exerciseId: string;
+  dayOfWeek: string;
+  setsData: {
+    sets: number;
+    reps: number;
+    weight?: number | null;
+  }[];
+}
 
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
   const params = await context.params;
@@ -66,17 +75,6 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
       }
     });
 
-    // 4. Procesar y validar los ejercicios
-    const exercisesToProcess = routineExercises
-      .filter(ex => ex.exerciseId && ex.dayOfWeek && ex.sets && ex.reps)
-      .map(ex => ({
-        exerciseId: ex.exerciseId,
-        dayOfWeek: ex.dayOfWeek,
-        sets: Number(ex.sets),
-        reps: Number(ex.reps),
-        weight: ex.weight ? Number(ex.weight) : null
-      }));
-
     // 5. Agrupar ejercicios por día y tipo (para manejar múltiples sets)
     const exercisesGrouped = routineExercises.reduce((acc, curr) => {
       if (!curr.exerciseId || !curr.dayOfWeek || !Array.isArray(curr.sets)) return acc;
@@ -118,8 +116,8 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     });
 
     // 7. Crear nuevos ejercicios con sus sets
-    for (const group of Object.values(exercisesGrouped)) {
-      const newExercise = await prisma.routineExercise.create({
+    for await (const group of Object.values(exercisesGrouped) as ExercisesGrouped[]) {
+       await prisma.routineExercise.create({
         data: {
           routineId: params.id,
           exerciseId: group.exerciseId,

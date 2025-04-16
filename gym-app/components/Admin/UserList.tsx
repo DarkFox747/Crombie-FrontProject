@@ -1,6 +1,8 @@
 'use client';
 
-export default function UserList({ users, onEdit, onRefresh }) {
+import { User } from "@prisma/client";
+
+export default function UserList({ users, onEdit }:{users:User[], onEdit:(user:User) => void, onRefresh:() => void}) {
   return (
     <div className="bg-gray-800 p-4 rounded-lg shadow-md overflow-auto">
       <h2 className="text-xl font-bold text-yellow-400 mb-4">Usuarios</h2>

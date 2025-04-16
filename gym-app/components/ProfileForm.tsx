@@ -1,8 +1,17 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { User } from '@prisma/client';
+import { useState } from 'react';
 
-export default function ProfileForm({ user, isAdmin, isProfessor, onSubmit }) {
-  const [formData, setFormData] = useState({
+interface ProfileFormData {  
+  name: string;
+  email: string;
+  dni: string;
+  phone: string;
+  role: string;
+}
+
+export default function ProfileForm({ user, isAdmin, isProfessor, onSubmit }:{user:User, isAdmin:boolean, isProfessor:boolean, onSubmit:(formData:ProfileFormData) => void}) {
+  const [formData, setFormData] = useState<ProfileFormData>({
     name: user.name || '',
     email: user.email || '',
     dni: user.dni || '',
@@ -10,13 +19,15 @@ export default function ProfileForm({ user, isAdmin, isProfessor, onSubmit }) {
     role: user.role || 'ALUMNO',
   });
 
-  const handleChange = (e) => {
+  //eslint-disable-next-line
+  const handleChange = (e:any) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  
+  //eslint-disable-next-line
+  const handleSubmit = (e:any) => {
+    e.preventDefault();    
     onSubmit(formData);
   };
 
