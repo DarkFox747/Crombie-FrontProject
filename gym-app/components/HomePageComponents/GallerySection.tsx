@@ -1,4 +1,3 @@
-// components/HomePageComponents/GallerySection.tsx
 "use client";
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -22,7 +21,6 @@ export default function GallerySection() {
       src: 'https://storage.googleapis.com/gym-app-profile-pics/gim3.jpg?q=80&w=2070&auto=format&fit=crop',
       caption: 'Instalaciones equipadas'
     },
-    
   ];
 
   return (
@@ -39,11 +37,13 @@ export default function GallerySection() {
             className="overflow-hidden rounded-lg bg-gray-700"
           >
             <div className="h-64 relative">
-              <Image 
-                src={img.src} 
-                alt={img.caption} 
-                layout="fill"
-                objectFit="cover"
+              <Image
+                src={img.src}
+                alt={img.caption}
+                fill
+                className="object-cover rounded-lg"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={index === 0} // Opcional: carga más rápido la primera
               />
             </div>
             <p className="p-4 text-center">{img.caption}</p>

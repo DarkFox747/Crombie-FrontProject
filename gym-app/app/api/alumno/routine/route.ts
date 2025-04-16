@@ -1,12 +1,16 @@
-// app/api/alumno/routine/route.ts
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function GET(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return new Response('No autenticado', { status: 401 });
+export async function GET() {
+  try {
+      const authData = await auth();
+      const { userId } = authData;
+    if (!userId) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
 
+  // Cambiar de prisma.routine a prisma.routineHistory
   const routine = await prisma.routineHistory.findFirst({
     where: {
       userId,
@@ -14,12 +18,27 @@ export async function GET(req: Request) {
     },
     include: {
       routineExercises: {
-        include: { exercise: true },
+        include: {
+          exercise: true,
+          sets: true,
+        },
+        orderBy: {
+          dayOfWeek: 'asc',
+        },
       },
     },
   });
 
-  if (!routine) return new Response('No se encontró rutina activa', { status: 404 });
+  if (!routine) {
+    return NextResponse.json({ error: 'No se encontró rutina activa' }, { status: 404 });
+  }
 
   return NextResponse.json(routine);
+} catch (error) {
+  console.error('Error fetching routine:', error);
+  return NextResponse.json(
+    { error: 'Error interno del servidor' },
+    { status: 500 }
+  );
+}
 }

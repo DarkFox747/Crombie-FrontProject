@@ -44,9 +44,10 @@ export default function ServicesSection() {
               <Image 
                 src={service.img} 
                 alt={service.title} 
-                layout="fill"
-                objectFit="cover"
-                className="hover:scale-105 transition-transform duration-300"
+                fill
+                priority // carga esta imagen primero para mejor performance
+                sizes="100vw"                
+                className="hover:scale-105 transition-transform duration-300 object-cover rounded-t-lg"
               />
             </div>
             <div className="p-6 flex-grow">
