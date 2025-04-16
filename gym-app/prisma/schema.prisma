@@ -9,6 +9,71 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  name         String
+  dni          String       @unique
+  phone        String?
+  profilePictureUrl String?        
+  role         Role         @default(ALUMNO)
+  createdAt    DateTime     @default(now())
+  routineHistories RoutineHistory[]
+}
+
+model Exercise {
+  id           String       @id @default(uuid())
+  name         String       @unique
+  description  String?
+  videoUrl     String?
+  createdBy    String?      
+  createdAt    DateTime     @default(now())
+  routineExercises RoutineExercise[]
+}
+
+model RoutineHistory {
+  id               String           @id @default(uuid())
+  userId           String
+  startDate        DateTime
+  endDate          DateTime?
+  status           String
+  routineExercises RoutineExercise[]
+  user             User             @relation(fields: [userId], references: [id])
+}
+
+model RoutineExercise {
+  id           String         @id @default(uuid())
+  routineId    String
+  exerciseId   String
+  dayOfWeek    String
+  routine      RoutineHistory @relation(fields: [routineId], references: [id])
+  exercise     Exercise       @relation(fields: [exerciseId], references: [id])
+  sets         RoutineSet[]   // RELACIÓN A LOS SETS
+}
+
+model RoutineSet {
+  id               String         @id @default(uuid())
+  routineExerciseId String
+  sets             Int
+  reps             Int
+  weight           Float?
+
+  routineExercise  RoutineExercise @relation(fields: [routineExerciseId], references: [id])
+}
+
+
+enum Role {
+  ALUMNO
+  PROFESSOR
+  ADMIN
+}
+
+enum RoutineStatus {
+  ACTIVE      // Rutina actualmente en uso
+  COMPLETED   // Rutina finalizada
+  PLANNED     // Rutina programada para el futuro
 }
