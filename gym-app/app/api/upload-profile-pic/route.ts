@@ -29,7 +29,8 @@ export async function POST(req: Request) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  return new Promise((resolve) => {
+  // Cambia la promesa para que devuelva una Response explícita
+  return new Promise<Response>((resolve) => {
     blobStream.on('error', (err) => {
       console.error('Error al subir a GCS:', err);
       resolve(new Response('Error al subir archivo', { status: 500 }));

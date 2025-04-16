@@ -1,7 +1,9 @@
+
 "use client";
 import { useState } from 'react';
 import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
 
+//eslint-disable @typescript-eslint/no-explicit-any
 export default function RoutineGrid({ routine, exercises, onSave }) {
   const [days, setDays] = useState(() => {
     const grouped = routine.routineExercises.reduce((acc, re) => {
@@ -19,6 +21,7 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
       });
       
       return acc;
+      //eslint-disable-next-line
     }, {} as Record<string, any[]>);
     
     return grouped;
@@ -447,7 +450,8 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                                       setSearchTerms((prev) => ({ ...prev, [rowKey]: e.target.value }));
                                       setOpenDropdowns((prev) => ({ ...prev, [rowKey]: true }));
                                     }}
-                                    onFocus={(e) => {
+                                    
+                                    onFocus={() => {
                                       // Al enfocar, siempre usamos el searchTerm actual y no el nombre del ejercicio
                                       if (searchTerm === undefined) {
                                         setSearchTerms((prev) => ({ ...prev, [rowKey]: '' }));

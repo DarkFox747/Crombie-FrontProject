@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import Link from 'next/link';
 import { FaSearch, FaUserCircle, FaTimes } from 'react-icons/fa';
