@@ -28,7 +28,7 @@ export default function AlumnoPage() {
 
   if (!isLoaded) return <LoadingSpinner />;
   if (!userId) return <div className="text-white p-4 text-center">Iniciá sesión para ver tu rutina</div>;
-  if (error) return <div className="text-white p-4 text-center text-red-400">{error}</div>;
+  if (error) return <div className="text-white p-4 text-center ">{error}</div>;
   if (!routine) return <LoadingSpinner />;
 
   return (
