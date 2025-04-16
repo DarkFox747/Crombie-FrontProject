@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    console.log(process.env),
+    
     <ClerkProvider>
       <html lang="es" className="scroll-smooth">
         <body className="flex flex-col min-h-screen bg-gray-900 text-white">
