@@ -1,39 +1,35 @@
-FROM node:18-alpine AS base
-
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
+FROM node:18-alpine AS builder
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm ci
-
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+RUN npm install
 COPY . .
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-ENV NEXT_TELEMETRY_DISABLED 1
+
+
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_cHJlc2VudC1sb2JzdGVyLTMzLmNsZXJrLmFjY291bnRzLmRldiQ"
+ENV CLERK_SECRET_KEY="sk_test_7ErY1VEyWh6rZXS2YBN4Zm4shJbkt9KF1gLfoTqvxX"
+
+
+ENV NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL=/dashboard
+ENV NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL=/dashboard
+ENV NEXT_PUBLIC_CLERK_SIGN_OUT_URL=/
+
+
+
+ENV GOOGLE_CLOUD_PROJECT_ID="gym-app-454921"
+ENV GOOGLE_CLOUD_BUCKET_NAME="gym-app-profile-pics"
+
+RUN npx prisma generate
 
 RUN npm run build
 
-FROM base AS runner
+FROM node:18-alpine AS runner
 WORKDIR /app
-
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
+COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package*.json ./
 
-USER nextjs
-
-EXPOSE 3000
-
-ENV PORT 3000
-
+RUN npm install --production
 CMD ["npm", "start"]
