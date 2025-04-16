@@ -21,6 +21,10 @@ const Navbar = () => {
             <Link href="/routines" className="text-white hover:text-gray-300">
             Routines
             </Link>
+            <Link href="/alumno" className="text-white hover:text-gray-300">
+            Ver tus Rutinas
+            </Link>
+
             
         </div>
       </div>

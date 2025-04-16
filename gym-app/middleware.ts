@@ -6,7 +6,6 @@ const isProfessorRoute = createRouteMatcher([
   '/dashboard(.*)',
   '/exercises(.*)',
   '/routines(.*)',
-  '/api/users(.*)',
   '/api/routines(.*)',
   '/api/exercises(.*)',
   '/api/sync-users(.*)',
