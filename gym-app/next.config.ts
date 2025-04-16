@@ -13,11 +13,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'storage.googleapis.com',        
+        hostname: 'storage.googleapis.com',
+        pathname: '/gym-app-profile-pics/**',        
       },
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',        
+        hostname: 'images.unsplash.com',
+        pathname: '/**',          
       },
     ],
   },
