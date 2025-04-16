@@ -447,7 +447,7 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                                       setSearchTerms((prev) => ({ ...prev, [rowKey]: e.target.value }));
                                       setOpenDropdowns((prev) => ({ ...prev, [rowKey]: true }));
                                     }}
-                                    onFocus={(e) => {
+                                    onFocus={() => {
                                       // Al enfocar, siempre usamos el searchTerm actual y no el nombre del ejercicio
                                       if (searchTerm === undefined) {
                                         setSearchTerms((prev) => ({ ...prev, [rowKey]: '' }));

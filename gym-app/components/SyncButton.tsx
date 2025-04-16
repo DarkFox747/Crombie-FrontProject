@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { clerkClient } from '@clerk/nextjs/server';
+
 
 // Nota: No podemos usar clerkClient directamente en un Client Component.
 // Necesitamos una API intermedia para hacer la sincronización desde el servidor.
