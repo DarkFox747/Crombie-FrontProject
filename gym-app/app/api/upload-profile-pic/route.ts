@@ -4,7 +4,8 @@ import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 
 const storage = new Storage(); // Usamos ADC como configuramos antes
-const bucket = storage.bucket(process.env.GOOGLE_CLOUD_BUCKET_NAME);
+const GOOGLE_CLOUD_BUCKET_NAME = "gym-app-profile-pics"
+const bucket = storage.bucket(GOOGLE_CLOUD_BUCKET_NAME);
 
 export async function POST(req: Request) {
   const authData = await auth();
