@@ -18,7 +18,7 @@ GymApp es una aplicación web para la gestión de rutinas de gimnasio, diseñada
 - **Backend**: Next.js API Routes, Prisma ORM para la base de datos.
 - **Autenticación**: Clerk para gestión de usuarios y sesiones.
 - **Base de Datos**: MySQL (o la base de datos configurada con Prisma).
-- **Despliegue**: Vercel (recomendado para despliegue automático).
+- **Despliegue**: GCP (recomendado para despliegue automático).
 
 ## 📦 Instalación
 
@@ -29,7 +29,7 @@ Sigue estos pasos para instalar y ejecutar el proyecto localmente.
 - Node.js (versión 18.x o superior)
 - npm o yarn
 - Una base de datos MySQL (o la que uses con Prisma)
-- Una cuenta de Clerk para autenticación (obtén tus claves en [Clerk Dashboard](https://dashboard.clerk.dev/))
+- Una cuenta de Clerk para autenticación 
 
 ### Pasos
 
@@ -60,11 +60,11 @@ Crea un archivo .env.local en la raíz del proyecto y agrega las siguientes vari
 Asegúrate de que tu base de datos esté corriendo y ejecuta las migraciones de Prisma:
      ```bash
    npx prisma migrate dev --name init
-
-5.- Inicia el servidor de desarrollo:
+     
+5. **Inicia el servidor de desarrollo**:
      ```bash
    npm run dev
-
+     
 ## 🌐 Uso
 
 1. **Inicia sesión**:
@@ -92,31 +92,31 @@ Asegúrate de que tu base de datos esté corriendo y ejecuta las migraciones de 
 gymapp/
 ├── app/                    # Páginas y rutas API de Next.js
 │   ├── api/                # Rutas API
-│   │   ├── exercises/
-│   │   ├── routines/
-│   │   └── users/
-│   │   └── alumno/
-│   │   └── sync-users/     
-│   │   └── upload-profile-pic/
-│   │   └── webhooks/      
+│   │   ├── exercises/      # Endpoints para ejercicios
+│   │   ├── routines/       # Endpoints para rutinas
+│   │   ├── users/          # Endpoints para usuarios
+│   │   ├── alumno/         # Endpoints para alumnos
+│   │   ├── sync-users/     # Endpoint para sincronización de usuarios
+│   │   ├── upload-profile-pic/  # Endpoint para subir fotos de perfil
+│   │   └── webhooks/       # Endpoints para webhooks (Clerk)
 │   ├── alumnos/            # Página para alumnos
 │   ├── dashboard/          # Dashboard para profesores
 │   ├── exercises/          # Página de gestión de ejercicios
 │   ├── profile/            # Página de perfil
 │   ├── routines/           # Página de gestión de rutinas
-│   └── Home/               # Home Page
+│   ├── Home/               # Página principal (Home)
+│   └── not-authorized/     # Página de error de autorización
 ├── components/             # Componentes reutilizables
 │   ├── Alumnos/            # Componentes para la página /alumnos
 │   ├── Admin/              # Componentes para /dashboard
 │   ├── ExercisesPage/      # Componentes para /exercises
 │   ├── ProfilePage/        # Componentes para /profile
-│   └── RoutinesPage/       # Componentes para /routines
-│   └── RoutinesEditPage/   # Componentes para /routines
-│   └── HomePageComponets/  # Componentes para /home
+│   ├── RoutinesPage/       # Componentes para /routines
+│   ├── RoutinesEditPage/   # Componentes para /routines/edit/[id]
+│   └── HomePageComponents/ # Componentes para la página principal (/Home)
 ├── lib/                    # Utilidades y configuración
 │   └── prisma.js           # Configuración de Prisma
 ├── public/                 # Archivos estáticos
-└── prisma/                 # Esquema y migraciones de Prisma
+├── prisma/                 # Esquema y migraciones de Prisma
 │   └── schema.prisma
-├── types/                 # Administrar types de clerk
-
+└── types/                  # Tipos personalizados (para Clerk)
