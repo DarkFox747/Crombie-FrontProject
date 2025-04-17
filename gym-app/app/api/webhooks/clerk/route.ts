@@ -3,11 +3,9 @@ import { headers } from 'next/headers';
 import prisma from '../../../../lib/prisma';
 
 export async function POST(req: Request) {
-  const payload = await req.json();
   const heads = headers();
-
-  // Verificar la firma del webhook
   const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
+
   if (!webhookSecret) {
     return new Response('Webhook secret not set', { status: 400 });
   }
@@ -20,9 +18,12 @@ export async function POST(req: Request) {
     return new Response('Missing svix headers', { status: 400 });
   }
 
+  const rawBody = await req.text();
+
+  let payload: any;
   try {
     const wh = new Webhook(webhookSecret);
-    wh.verify(JSON.stringify(payload), {
+    payload = wh.verify(rawBody, {
       'svix-id': svix_id,
       'svix-timestamp': svix_timestamp,
       'svix-signature': svix_signature,
@@ -32,26 +33,23 @@ export async function POST(req: Request) {
     return new Response('Invalid signature', { status: 400 });
   }
 
-  // Manejar eventos de Clerk
-  const eventType = payload.type;
+  // Ya verificado, ahora procesamos el body parseado
+  const { type: eventType, data } = payload;
+
   if (eventType === 'user.created' || eventType === 'user.updated') {
-    const { id, email_addresses, first_name, last_name } = payload.data;
+    const { id, email_addresses, first_name, last_name } = data;
     const email = email_addresses[0].email_address;
     const name = `${first_name || ''} ${last_name || ''}`.trim() || 'Usuario sin nombre';
 
     await prisma.user.upsert({
-      where: { id }, // Usar el ID de Clerk como ID en Prisma
-      update: {
-        email,
-        name,
-        // Actualizar otros campos si es necesario
-      },
+      where: { id },
+      update: { email, name },
       create: {
-        id, // Sincronizar con Clerk
+        id,
         email,
         name,
-        dni: `DNI-${id.slice(-8)}`, // Generar un DNI temporal
-        role: 'ALUMNO', // Por defecto, ajustar según lógica
+        dni: `DNI-${id.slice(-8)}`,
+        role: 'ALUMNO',
       },
     });
   }
