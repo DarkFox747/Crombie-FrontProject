@@ -1,13 +1,9 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
-import { Clerk } from '@clerk/clerk-sdk-node';
+import { clerkClient } from '@clerk/clerk-sdk-node';
 
-const clerk = new Clerk({
-  secretKey: process.env.CLERK_SECRET_KEY,
-});
-
-export async function POST(req: Request) {
+export async function POST() {
   const authData = await auth();
   const { userId } = authData;
 
@@ -17,7 +13,7 @@ export async function POST(req: Request) {
 
   try {
     // Obtener todos los usuarios de Clerk
-    const clerkUsers = await clerk.users.getUserList();
+    const clerkUsers = await clerkClient.users.getUserList();
     console.log('API Sync - Respuesta completa de getUserList:', JSON.stringify(clerkUsers, null, 2));
 
     // Determinar el array de usuarios
@@ -58,7 +54,9 @@ export async function POST(req: Request) {
     return NextResponse.json({
       message: `${usersArray.length} usuarios sincronizados`,
     });
-  } catch (error) {
+  } 
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  catch (error: any) {
     console.error('API Sync - Error al sincronizar usuarios:', error);
     return NextResponse.json(
       { error: 'Error al sincronizar usuarios', details: error.message },

@@ -5,15 +5,17 @@ import Image from 'next/image';
 import RoutinesHeader from '../../components/RoutinesPageComponents/RoutinesHeader';
 import RoutinesList from '../../components/RoutinesPageComponents/RoutinesList';
 import CreateRoutineModal from '../../components/RoutinesPageComponents/CreateRoutineModal';
+import { RoutineHistory, User } from '@prisma/client';
 
 export default function Routines() {
-  const [routines, setRoutines] = useState([]);
-  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [routines, setRoutines] = useState<RoutineHistory[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string|null>(null);
   const [filterStatus, setFilterStatus] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchRoutines();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUserId, filterStatus, searchTerm]);
 
   const fetchRoutines = async () => {
@@ -28,19 +30,19 @@ export default function Routines() {
       // Primero buscamos usuarios que coincidan
       const usersRes = await fetch(`/api/users?search=${encodeURIComponent(searchTerm)}`);
       const users = await usersRes.json();
-      const filteredUserIds = users.map(user => user.id);
-      data = data.filter(routine => filteredUserIds.includes(routine.userId));
+      const filteredUserIds = users.map((user:User) => user.id);
+      data = data.filter((routine:RoutineHistory) => filteredUserIds.includes(routine.userId));
     }
 
     setRoutines(data);
   };
 
-  const handleUserSelect = (userId, status = null) => {
+  const handleUserSelect = (userId:string, status = null) => {
     setSelectedUserId(userId);
     setFilterStatus(status);
   };
 
-  const handleSearchChange = (term) => {
+  const handleSearchChange = (term:string) => {
     setSearchTerm(term);
     setSelectedUserId(null);
     setFilterStatus(null);

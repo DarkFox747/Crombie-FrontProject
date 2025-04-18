@@ -1,16 +1,19 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import ProfileForm from '../../components/ProfilePage/ProfileForm';
 import Image from 'next/image';
+import { User } from '@prisma/client';
+
 
 export default function Profile() {
   const { userId } = useAuth();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User|null>(null);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     if (userId) fetchUser();
+    //eslint-disable-next-line
   }, [userId]);
 
   const fetchUser = async () => {
@@ -19,7 +22,7 @@ export default function Profile() {
     setUser(data);
   };
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = async (formData:string[]) => {
     const res = await fetch(`/api/users/${userId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -33,9 +36,10 @@ export default function Profile() {
     }
   };
 
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleUpload = async (e:ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+  if (files && files.length > 0) {
+    const file = files[0];
 
     const formData = new FormData();
     formData.append('file', file);
@@ -51,6 +55,7 @@ export default function Profile() {
       setMessage('Error al subir foto');
     }
   };
+  }
 
   if (!userId) return <div className="p-4 text-white">Inicia sesión para ver tu perfil.</div>;
   if (!user) return <div className="p-4 text-white">Cargando...</div>;

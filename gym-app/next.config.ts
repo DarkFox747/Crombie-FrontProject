@@ -7,18 +7,19 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-  },
+  }, 
+
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'storage.googleapis.com',
-        pathname: '/gym-app-profile-pics/**', // Especifica el bucket y subrutas
+        pathname: '/gym-app-profile-pics/**',        
       },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
-        pathname: '/**',
+        pathname: '/**',          
       },
     ],
   },

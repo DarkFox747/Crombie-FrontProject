@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import { clerkClient } from '@clerk/nextjs/server';
 
 
 export default function SyncButton() {

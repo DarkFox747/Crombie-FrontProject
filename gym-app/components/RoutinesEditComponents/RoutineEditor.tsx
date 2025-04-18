@@ -3,13 +3,16 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import RoutineGrid from './RoutineGrid';
+import { RoutineHistory } from '@prisma/client';
+import { Exercise } from '@prisma/client';
+import { RoutineExercise } from '@prisma/client';
 
 export default function RoutineEditor({ routineId }: { routineId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get('userId');
-  const [routine, setRoutine] = useState<any>(null);
-  const [exercises, setExercises] = useState<any[]>([]);
+  const [routine, setRoutine] = useState<RoutineHistory &{routineExercises:RoutineExercise[]}|null>(null);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -22,9 +25,9 @@ export default function RoutineEditor({ routineId }: { routineId: string }) {
         if (routineId === 'new') {
           setRoutine({
             id: 'new',
-            userId,
-            startDate: new Date().toISOString().split('T')[0],
-            endDate: '',
+            userId: userId || '',
+            startDate: new Date(),
+            endDate: null,
             status: 'ACTIVE',
             routineExercises: [],
           });
@@ -43,7 +46,7 @@ export default function RoutineEditor({ routineId }: { routineId: string }) {
     fetchData();
   }, [routineId, userId]);
 
-  const handleSave = async (routineExercises: any) => {
+  const handleSave = async (routineExercises: RoutineExercise) => {
     try {
       const url = routineId === 'new' ? '/api/routines' : `/api/routines/${routineId}`;
       const method = routineId === 'new' ? 'POST' : 'PUT';
@@ -53,9 +56,9 @@ export default function RoutineEditor({ routineId }: { routineId: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          startDate: routine.startDate,
-          endDate: routine.endDate || null,
-          status: routine.status || 'ACTIVE',
+          startDate: routine!.startDate!,
+          endDate: routine?.endDate || null,
+          status: routine!.status || 'ACTIVE',
           routineExercises,
         }),
       });
@@ -76,7 +79,7 @@ export default function RoutineEditor({ routineId }: { routineId: string }) {
         body: JSON.stringify({
           ...routine,
           status: 'COMPLETED',
-          routineExercises: routine.routineExercises || [],
+          routineExercises: routine?.routineExercises || [],
         }),
       });
 
