@@ -1,9 +1,9 @@
 'use client';
 import { useState } from 'react';
 import { Dialog } from '@headlessui/react';
-import Link from 'next/link';
 import { FaSearch, FaUserCircle, FaTimes } from 'react-icons/fa';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { User } from '@prisma/client';
 
 export default function CreateRoutineModal() {
@@ -11,6 +11,7 @@ export default function CreateRoutineModal() {
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -28,6 +29,37 @@ export default function CreateRoutineModal() {
   const openModal = () => {
     setIsOpen(true);
     fetchUsers();
+  };
+
+  const createRoutine = async (userId: string): Promise<string | null> => {
+    try {
+      const res = await fetch('/api/routines', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          startDate: new Date().toISOString(), // Enviar la fecha actual como startDate
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al crear la rutina');
+      }
+
+      const data = await res.json();
+      return data.id; // Retorna el ID de la rutina recién creada
+    } catch (error) {
+      console.error('Error al crear la rutina:', error);
+      return null;
+    }
+  };
+
+  const handleUserSelect = async (userId: string) => {
+    const routineId = await createRoutine(userId);
+    if (routineId) {
+      setIsOpen(false); // Cierra el modal
+      router.push(`/routines/edit/${routineId}`); // Redirige al editor con el routineId
+    }
   };
 
   const filteredUsers = users.filter(user =>
@@ -85,13 +117,9 @@ export default function CreateRoutineModal() {
                 <ul className="space-y-2">
                   {filteredUsers.map((user) => (
                     <li key={user.id}>
-                      <Link
-                        href={{
-                          pathname: '/routines/edit/new',
-                          query: { userId: user.id },
-                        }}
-                        className="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition-colors"
-                        onClick={() => setIsOpen(false)}
+                      <button
+                        onClick={() => handleUserSelect(user.id)}
+                        className="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition-colors w-full text-left"
                       >
                         <div className="flex-shrink-0">
                           {user.profilePictureUrl ? (
@@ -110,7 +138,7 @@ export default function CreateRoutineModal() {
                           <p className="text-white font-medium">{user.name}</p>
                           <p className="text-gray-400 text-sm">{user.email}</p>
                         </div>
-                      </Link>
+                      </button>
                     </li>
                   ))}
                 </ul>

@@ -169,14 +169,27 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
   }
 
   try {
-    // Primero borramos los ejercicios relacionados
-    await prisma.routineExercise.deleteMany({
-      where: { routineId: params.id }
+    // 1. Obtener los ejercicios relacionados con la rutina
+    const routineExercises = await prisma.routineExercise.findMany({
+      where: { routineId: params.id },
     });
 
-    // Luego borramos la rutina
+    // 2. Eliminar los sets relacionados con los ejercicios
+    const exerciseIds = routineExercises.map((exercise) => exercise.id);
+    await prisma.routineSet.deleteMany({
+      where: {
+        routineExerciseId: { in: exerciseIds },
+      },
+    });
+
+    // 3. Eliminar los ejercicios relacionados con la rutina
+    await prisma.routineExercise.deleteMany({
+      where: { routineId: params.id },
+    });
+
+    // 4. Eliminar la rutina
     await prisma.routineHistory.delete({
-      where: { id: params.id }
+      where: { id: params.id },
     });
 
     return new Response('Rutina eliminada correctamente', { status: 200 });
