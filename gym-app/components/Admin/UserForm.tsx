@@ -1,8 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { User } from '@prisma/client';
 
-export default function UserForm({ user, onSaved }) {
-  const [formData, setFormData] = useState({
+interface UserFormProps {
+  user: User | null;
+  onSaved: () => void;
+}
+
+
+export default function UserForm({ user, onSaved }: UserFormProps) {
+  const [formData, setFormData] = useState<Partial<User>>({
     name: '',
     email: '',
     dni: '',
@@ -23,16 +30,17 @@ export default function UserForm({ user, onSaved }) {
       setFormData({ name: '', email: '', dni: '', phone: '', role: 'ALUMNO' });
     }
   }, [user]);
+  
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const method = user ? 'PUT' : 'POST';
-    const endpoint = user ? `/api/users/${user.id}` : '/api/users';
+    const endpoint = user ? `/api/users/${user.id}` : `/api/users`;
 
     const res = await fetch(endpoint, {
       method,
@@ -54,7 +62,7 @@ export default function UserForm({ user, onSaved }) {
             <label className="block text-sm text-white mb-1">{field.toUpperCase()}</label>
             <input
               name={field}
-              value={formData[field]}
+              value={String(formData[field as keyof User] || '')} 
               onChange={handleChange}
               className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white"
             />
@@ -64,7 +72,7 @@ export default function UserForm({ user, onSaved }) {
           <label className="block text-sm text-white mb-1">ROL</label>
           <select
             name="role"
-            value={formData.role}
+            value={formData.role || 'ALUMNO'} 
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white"
           >

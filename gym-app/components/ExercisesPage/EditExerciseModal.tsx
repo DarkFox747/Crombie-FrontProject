@@ -1,20 +1,33 @@
 'use client';
 import { Dialog } from '@headlessui/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { Exercise } from '@prisma/client';
 
-export default function EditExerciseModal({ isOpen, onClose, exercise, onSave }) {
-  const [form, setForm] = useState(exercise || {});
+interface EditExerciseModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  exercise: Partial<Exercise> | null; // Puede ser un ejercicio parcial o null
+  onSave: (exercise: Partial<Exercise>) => Promise<void>; // onSave recibe un ejercicio parcial y devuelve una promesa
+}
+
+export default function EditExerciseModal({
+  isOpen,
+  onClose,
+  exercise,
+  onSave,
+}: EditExerciseModalProps) {
+  const [form, setForm] = useState<Partial<Exercise>>(exercise || {});
 
   useEffect(() => {
     setForm(exercise || {});
   }, [exercise]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await onSave(form);
   };

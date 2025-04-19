@@ -1,12 +1,18 @@
 "use client";
-import Image from 'next/image';
-import { useRef } from 'react';
+import Image from "next/image";
+import { useRef } from "react";
+import { User } from "@prisma/client";
 
-export default function ProfileHeader({ user, onUpload }) {
-  const fileInputRef = useRef(null);
+interface ProfileHeaderProps {
+  user: User; // Usamos la interfaz User de Prisma
+  onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void; // Función para manejar la carga de archivos
+}
+
+export default function ProfileHeader({ user, onUpload }: ProfileHeaderProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null); // Ref para el input de archivo
 
   const handleButtonClick = () => {
-    fileInputRef.current.click(); 
+    fileInputRef.current?.click(); // Asegurarse de que el ref no sea null antes de llamar a click()
   };
 
   return (
@@ -26,7 +32,7 @@ export default function ProfileHeader({ user, onUpload }) {
       )}
       <div>
         <h1 className="text-2xl font-bold">{user.name}</h1>
-        <div className="mt-2 bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition-colors">
+        <div className="mt-2">
           <button
             type="button"
             onClick={handleButtonClick}
@@ -39,7 +45,7 @@ export default function ProfileHeader({ user, onUpload }) {
             ref={fileInputRef}
             onChange={onUpload}
             accept="image/*"
-            className="hidden" 
+            className="hidden"
           />
         </div>
       </div>

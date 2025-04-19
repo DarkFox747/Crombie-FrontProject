@@ -1,16 +1,30 @@
 // components/RoutinesPageComponents/RoutinesList.tsx
 "use client";
-import { useState, useEffect } from 'react';
-import RoutineCard from './RoutineCard';
+import { useState, useEffect } from "react";
+import RoutineCard from "./RoutineCard";
+import { RoutineHistory, RoutineExercise, Exercise, User } from "@prisma/client";
 
-export default function RoutinesList({ routines, pageSize = 6 }) {
-  const [users, setUsers] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+// Define el tipo extendido para las rutinas
+type RoutineWithExercises = RoutineHistory & {
+  routineExercises: (RoutineExercise & {
+    exercise: Exercise;
+  })[];
+};
+
+// Define las props del componente
+interface RoutinesListProps {
+  routines: RoutineWithExercises[]; // Rutinas con relaciones extendidas
+  pageSize?: number; // Tamaño de página opcional
+}
+
+export default function RoutinesList({ routines, pageSize = 6 }: RoutinesListProps) {
+  const [users, setUsers] = useState<User[]>([]); // Estado para los usuarios
+  const [currentPage, setCurrentPage] = useState<number>(1); // Estado para la página actual
 
   useEffect(() => {
-    fetch('/api/users')
+    fetch("/api/users")
       .then((res) => res.json())
-      .then((data) => setUsers(data));
+      .then((data: User[]) => setUsers(data));
   }, []);
 
   if (!routines || routines.length === 0) {
@@ -22,17 +36,17 @@ export default function RoutinesList({ routines, pageSize = 6 }) {
     );
   }
 
-  const getUserName = (userId) => {
+  const getUserName = (userId: string): string => {
     const user = users.find((u) => u.id === userId);
-    return user ? user.name : 'Usuario desconocido';
+    return user?.name ?? "Usuario desconocido"; // Manejo seguro de valores opcionales
   };
 
   // Ordenar rutinas: activas primero, luego planificadas y finalmente completadas
   const sortedRoutines = [...routines].sort((a, b) => {
-    if (a.status === 'ACTIVE') return -1;
-    if (b.status === 'ACTIVE') return 1;
-    if (a.status === 'PLANNED') return -1;
-    if (b.status === 'PLANNED') return 1;
+    if (a.status === "ACTIVE") return -1;
+    if (b.status === "ACTIVE") return 1;
+    if (a.status === "PLANNED") return -1;
+    if (b.status === "PLANNED") return 1;
     return 0;
   });
 

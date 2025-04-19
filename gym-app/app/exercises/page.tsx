@@ -4,12 +4,13 @@ import { useAuth } from '@clerk/nextjs';
 import ExerciseForm from '@/components/ExercisesPage/ExerciseForm';
 import ExerciseList from '@/components/ExercisesPage/ExerciseList';
 import EditExerciseModal from '@/components/ExercisesPage/EditExerciseModal';
+import { Exercise } from '@prisma/client';
 
 export default function Exercises() {
   const { userId } = useAuth();
-  const [exercises, setExercises] = useState([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [message, setMessage] = useState('');
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState<Partial<Exercise> | null>(null);
 
   useEffect(() => {
     fetchExercises();
@@ -17,11 +18,11 @@ export default function Exercises() {
 
   const fetchExercises = async () => {
     const res = await fetch('/api/exercises');
-    const data = await res.json();
+    const data: Exercise[] = await res.json();
     setExercises(data);
   };
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = async (formData: Partial<Exercise>) => {
     const res = await fetch('/api/exercises', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -36,7 +37,7 @@ export default function Exercises() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     const res = await fetch(`/api/exercises/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setMessage('Ejercicio eliminado');
@@ -46,7 +47,7 @@ export default function Exercises() {
     }
   };
 
-  const handleEditSave = async (data) => {
+  const handleEditSave = async (data: Partial<Exercise>) => {
     const res = await fetch(`/api/exercises/${data.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

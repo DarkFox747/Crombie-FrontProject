@@ -4,7 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import ProfileForm from '../../components/ProfilePage/ProfileForm';
 import Image from 'next/image';
 import { User } from '@prisma/client';
-
+import  type { ProfileFormData } from '@/components/ProfilePage/ProfileForm';
 
 export default function Profile() {
   const { userId } = useAuth();
@@ -22,7 +22,7 @@ export default function Profile() {
     setUser(data);
   };
 
-  const handleSubmit = async (formData:string[]) => {
+  const handleSubmit = async (formData: ProfileFormData) => {
     const res = await fetch(`/api/users/${userId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

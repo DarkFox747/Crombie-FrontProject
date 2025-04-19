@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { User } from '@prisma/client';
-interface ProfileFormData {  
+export interface ProfileFormData {  
   name: string;
   email: string;
   dni: string;

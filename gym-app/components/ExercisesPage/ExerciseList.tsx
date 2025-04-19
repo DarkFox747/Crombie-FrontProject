@@ -1,19 +1,31 @@
 'use client';
 import { useState, useMemo } from 'react';
 import ExerciseItem from './ExerciseItem';
+import { Exercise } from '@prisma/client';
 
-export default function ExerciseList({ exercises, onDelete, onEdit }) {
-  const [search, setSearch] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+// Define las props del componente
+interface ExerciseListProps {
+  exercises: Exercise[]; // Un array de objetos de tipo Exercise
+  onDelete: (id: string) => void; // Función que recibe un ID y no devuelve nada
+  onEdit: (exercise: Exercise) => void; // Función que recibe un objeto Exercise y no devuelve nada
+}
+
+export default function ExerciseList({ exercises, onDelete, onEdit }: ExerciseListProps) {
+  const [search, setSearch] = useState<string>(''); // Estado para la búsqueda
+  const [currentPage, setCurrentPage] = useState<number>(1); // Estado para la página actual
   const itemsPerPage = 5;
 
+  // Filtrar los ejercicios según la búsqueda
   const filteredExercises = useMemo(() => {
     return exercises.filter((ex) =>
       ex.name.toLowerCase().includes(search.toLowerCase())
     );
   }, [search, exercises]);
 
+  // Calcular el número total de páginas
   const totalPages = Math.ceil(filteredExercises.length / itemsPerPage);
+
+  // Obtener los ejercicios paginados
   const paginated = filteredExercises.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -27,7 +39,7 @@ export default function ExerciseList({ exercises, onDelete, onEdit }) {
         value={search}
         onChange={(e) => {
           setSearch(e.target.value);
-          setCurrentPage(1);
+          setCurrentPage(1); // Reiniciar a la primera página al buscar
         }}
         className="w-full mb-4 p-2 rounded bg-gray-700 border border-gray-600 text-white"
       />

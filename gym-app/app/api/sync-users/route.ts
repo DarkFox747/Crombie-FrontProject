@@ -30,6 +30,15 @@ export async function POST() {
 
     // Iterar sobre los usuarios y sincronizar con Prisma
     for (const clerkUser of usersArray) {
+      // Mapear el rol de Clerk al rol de la base de datos
+      let role: 'ALUMNO' | 'PROFESSOR' | 'ADMIN' = 'ALUMNO'; // Valor predeterminado
+
+      if (clerkUser.publicMetadata?.role === 'professor') {
+        role = 'PROFESSOR';
+      } else if (clerkUser.publicMetadata?.role === 'admin') {
+        role = 'ADMIN';
+      }
+
       await prisma.user.upsert({
         where: { id: clerkUser.id },
         update: {
@@ -37,6 +46,7 @@ export async function POST() {
           name:
             `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() ||
             'Usuario sin nombre',
+          role, // Guardar el rol mapeado
         },
         create: {
           id: clerkUser.id,
@@ -45,7 +55,7 @@ export async function POST() {
             `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() ||
             'Usuario sin nombre',
           dni: `DNI-${clerkUser.id.slice(-8)}`,
-          role: 'ALUMNO',
+          role, // Guardar el rol mapeado
         },
       });
     }

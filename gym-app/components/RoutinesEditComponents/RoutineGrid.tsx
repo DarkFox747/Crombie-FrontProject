@@ -1,47 +1,74 @@
 "use client";
-import { useState } from 'react';
-import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
+import { useState } from "react";
+import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
+import { Exercise, RoutineExercise, RoutineSet, RoutineHistory } from "@prisma/client";
 
-export default function RoutineGrid({ routine, exercises, onSave }) {
-  const [days, setDays] = useState(() => {
+// Define el tipo extendido para las rutinas
+type RoutineWithExercises = RoutineHistory & {
+  routineExercises: (RoutineExercise & {
+    sets: RoutineSet[];
+  })[];
+};
+
+// Define el tipo para el estado `days`
+type DayExercises = {
+  id: string;
+  exerciseId: string;
+  sets: {
+    sets: number;
+    reps: number;
+    weight: number | null; // Cambiado para reflejar el esquema de Prisma
+  }[];
+};
+
+// Define las props del componente
+interface RoutineGridProps {
+  routine: RoutineWithExercises;
+  exercises: Exercise[];
+  onSave: (updatedRoutineExercises: RoutineExercise[]) => void; // Aseguramos que sea un arreglo
+}
+
+export default function RoutineGrid({ routine, exercises, onSave }: RoutineGridProps) {
+  const [days, setDays] = useState<Record<string, DayExercises[]>>(() => {
     const grouped = routine.routineExercises.reduce((acc, re) => {
       if (!acc[re.dayOfWeek]) acc[re.dayOfWeek] = [];
-      
-      // Mapea correctamente los sets desde Prisma
+
       acc[re.dayOfWeek].push({
         id: re.id,
         exerciseId: re.exerciseId,
-        sets: re.sets.map(s => ({
+        sets: re.sets.map((s) => ({
           sets: s.sets,
           reps: s.reps,
-          weight: s.weight ?? ''
-        }))
+          weight: s.weight ?? null, // Aseguramos que sea null si no hay valor
+        })),
       });
-      
+
       return acc;
-    }, {} as Record<string, any[]>);
-    
+    }, {} as Record<string, DayExercises[]>);
+
     return grouped;
   });
-  
-  const [newDay, setNewDay] = useState('');
-  const [searchTerms, setSearchTerms] = useState({});
-  const [openDropdowns, setOpenDropdowns] = useState({});
-  const [weightErrors, setWeightErrors] = useState({});
-  const [editingDay, setEditingDay] = useState(null);
 
-  const filteredExercises = (searchTerm) =>
-    exercises.filter((ex) => ex.name.toLowerCase().includes((searchTerm || '').toLowerCase()));
+  const [newDay, setNewDay] = useState<string>("");
+  const [searchTerms, setSearchTerms] = useState<Record<string, string | undefined>>({});
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+  const [weightErrors, setWeightErrors] = useState<Record<string, string | null>>({});
+  const [editingDay, setEditingDay] = useState<string | null>(null);
+
+  const filteredExercises = (searchTerm: string | undefined): Exercise[] =>
+    exercises.filter((ex) =>
+      ex.name.toLowerCase().includes((searchTerm || "").toLowerCase())
+    );
 
   const addDay = () => {
     const trimmedDay = newDay.trim();
     if (trimmedDay && !days[trimmedDay]) {
       setDays((prev) => ({ ...prev, [trimmedDay]: [] }));
-      setNewDay('');
+      setNewDay("");
     }
   };
 
-  const removeDay = (dayToRemove) => {
+  const removeDay = (dayToRemove: string) => {
     setDays((prev) => {
       const updatedDays = { ...prev };
       delete updatedDays[dayToRemove];
@@ -49,33 +76,44 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
     });
   };
 
-  const addExercise = (day) => {
+  const addExercise = (day: string) => {
     setDays((prev) => ({
       ...prev,
-      [day]: [...prev[day], { exerciseId: '', sets: prev[day][0]?.sets.map(() => ({ sets: 3, reps: 10, weight: '' })) || [{ sets: 3, reps: 10, weight: '' }] }],
+      [day]: [
+        ...prev[day],
+        {
+          id: "",
+          exerciseId: "",
+          sets: [{ sets: 3, reps: 10, weight: null }],
+        },
+      ],
     }));
   };
 
-  const removeExercise = (day, index) => {
+  const removeExercise = (day: string, index: number) => {
     setDays((prev) => ({
       ...prev,
       [day]: prev[day].filter((_, i) => i !== index),
     }));
   };
 
-  const updateExercise = (day, index, exerciseId) => {
+  const updateExercise = (day: string, index: number, exerciseId: string) => {
     setDays((prev) => {
       const updatedDay = prev[day].map((ex, i) =>
         i === index ? { ...ex, exerciseId } : ex
       );
       return { ...prev, [day]: updatedDay };
     });
-    // Establecemos el searchTerm como undefined para que se muestre el ejercicio seleccionado
     setSearchTerms((prev) => ({ ...prev, [`${day}-${index}`]: undefined }));
     setOpenDropdowns((prev) => ({ ...prev, [`${day}-${index}`]: false }));
   };
 
-  const updateSetHeader = (day, setIndex, field, value) => {
+  const updateSetHeader = (
+    day: string,
+    setIndex: number,
+    field: "sets" | "reps",
+    value: string
+  ) => {
     setDays((prev) => {
       const updatedDay = prev[day].map((ex) => ({
         ...ex,
@@ -87,11 +125,16 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
     });
   };
 
-  const updateWeight = (day, exerciseIndex, setIndex, value) => {
-    const numValue = value === '' ? '' : parseFloat(value);
+  const updateWeight = (
+    day: string,
+    exerciseIndex: number,
+    setIndex: number,
+    value: string
+  ) => {
+    const numValue = value === "" ? null : parseFloat(value); // Cambiado para que sea null en lugar de ""
     const errorKey = `${day}-${exerciseIndex}-${setIndex}`;
-    if (value !== '' && isNaN(numValue)) {
-      setWeightErrors((prev) => ({ ...prev, [errorKey]: 'Solo números' }));
+    if (value !== "" && isNaN(Number(value))) {
+      setWeightErrors((prev) => ({ ...prev, [errorKey]: "Solo números" }));
     } else {
       setWeightErrors((prev) => ({ ...prev, [errorKey]: null }));
       setDays((prev) => {
@@ -110,17 +153,17 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
     }
   };
 
-  const addSetColumn = (day) => {
+  const addSetColumn = (day: string) => {
     setDays((prev) => {
       const updatedDay = prev[day].map((ex) => ({
         ...ex,
-        sets: [...ex.sets, { sets: 3, reps: 10, weight: '' }],
+        sets: [...ex.sets, { sets: 3, reps: 10, weight: null }],
       }));
       return { ...prev, [day]: updatedDay };
     });
   };
 
-  const removeSetColumn = (day, setIndex) => {
+  const removeSetColumn = (day: string, setIndex: number) => {
     setDays((prev) => {
       const updatedDay = prev[day].map((ex) => ({
         ...ex,
@@ -131,21 +174,24 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
   };
 
   const handleSave = () => {
-    const updatedRoutineExercises = Object.entries(days).map(([day, exercises]) =>
-      exercises.map((ex) => ({
-        dayOfWeek: day,
-        exerciseId: ex.exerciseId,
-        sets: ex.sets.map((set) => ({
-          sets: set.sets,
-          reps: set.reps,
-          weight: set.weight === '' ? null : set.weight,
-        })),
-      }))
-    ).flat();
-  
-    onSave(updatedRoutineExercises);
+    const updatedRoutineExercises = Object.entries(days)
+      .map(([day, exercises]) =>
+        exercises.map((ex) => ({
+          id: ex.id || "", // Si no hay un ID, usa una cadena vacía o genera uno si es necesario
+          routineId: routine.id, // Usa el ID de la rutina actual
+          dayOfWeek: day,
+          exerciseId: ex.exerciseId,
+          sets: ex.sets.map((set) => ({
+            sets: set.sets,
+            reps: set.reps,
+            weight: set.weight, // Aseguramos que sea null o un número
+          })),
+        }))
+      )
+      .flat();
+
+    onSave(updatedRoutineExercises); // Pasamos un arreglo de ejercicios con los tipos correctos
   };
-  
 
   return (
     <div className="p-4 md:p-6 bg-gray-800 bg-opacity-80 backdrop-blur-md rounded-lg shadow-xl">
@@ -355,7 +401,7 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                     id={`weight-${rowKey}-${setIndex}`}
                     type="number"
                     step="0.1"
-                    value={set.weight}
+                    value={set.weight ?? ""}
                     onChange={(e) => updateWeight(day, exerciseIndex, setIndex, e.target.value)}
                     className="w-full p-1 bg-gray-600 text-white border border-yellow-500 rounded text-center"
                   />
@@ -489,7 +535,7 @@ export default function RoutineGrid({ routine, exercises, onSave }) {
                                       <input
                                         type="number"
                                         step="0.1"
-                                        value={set.weight}
+                                        value={set.weight ?? ""}
                                         onChange={(e) => updateWeight(day, exerciseIndex, setIndex, e.target.value)}
                                         className="w-full p-1 bg-gray-600 text-white border border-yellow-500 rounded text-center"
                                         placeholder="Peso (kg)"

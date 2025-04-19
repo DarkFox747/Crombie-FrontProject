@@ -2,9 +2,6 @@
 import { useState } from 'react';
 
 
-// Nota: No podemos usar clerkClient directamente en un Client Component.
-// Necesitamos una API intermedia para hacer la sincronización desde el servidor.
-
 export default function SyncButton() {
   const [status, setStatus] = useState<string>('');
 

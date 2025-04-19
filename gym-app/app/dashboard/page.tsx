@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react';
 import UserForm from '@/components/Admin/UserForm';
 import UserList from '@/components/Admin/UserList';
 import SyncButton from '@/components/SyncButton';
+import { User } from '@prisma/client';
 
 export default function DashboardPage() {
   const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState <User|null>(null);
 
   const fetchUsers = async () => {
     const res = await fetch('/api/users');

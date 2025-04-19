@@ -2,7 +2,8 @@ import { auth } from '@clerk/nextjs/server';
 import prisma from '../../../../lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
   const authData = await auth();
   const { userId } = authData;
 
@@ -27,7 +28,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json(exercise);
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
   const authData = await auth();
   const { userId } = authData;
 
