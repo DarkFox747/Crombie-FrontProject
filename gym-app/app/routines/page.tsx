@@ -5,13 +5,20 @@ import Image from 'next/image';
 import RoutinesHeader from '../../components/RoutinesPageComponents/RoutinesHeader';
 import RoutinesList from '../../components/RoutinesPageComponents/RoutinesList';
 import CreateRoutineModal from '../../components/RoutinesPageComponents/CreateRoutineModal';
-import { RoutineHistory, User } from '@prisma/client';
+import { RoutineHistory, RoutineExercise, Exercise, User } from '@prisma/client';
+
+// Extender el tipo Routine para incluir las relaciones necesarias
+type RoutineWithExercises = RoutineHistory & {
+  routineExercises: (RoutineExercise & {
+    exercise: Exercise;
+  })[];
+};
 
 export default function Routines() {
-  const [routines, setRoutines] = useState<RoutineHistory[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string|null>(null);
-  const [filterStatus, setFilterStatus] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [routines, setRoutines] = useState<RoutineWithExercises[]>([]); // Cambiar el tipo del estado
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<"ACTIVE" | "COMPLETED" | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
     fetchRoutines();
@@ -24,25 +31,25 @@ export default function Routines() {
     if (filterStatus) params.append('status', filterStatus);
 
     const res = await fetch(`/api/routines?${params.toString()}`);
-    let data = await res.json();
+    let data: RoutineWithExercises[] = await res.json();
 
     if (searchTerm && !selectedUserId) {
       // Primero buscamos usuarios que coincidan
       const usersRes = await fetch(`/api/users?search=${encodeURIComponent(searchTerm)}`);
-      const users = await usersRes.json();
-      const filteredUserIds = users.map((user:User) => user.id);
-      data = data.filter((routine:RoutineHistory) => filteredUserIds.includes(routine.userId));
+      const users: User[] = await usersRes.json();
+      const filteredUserIds = users.map((user) => user.id);
+      data = data.filter((routine) => filteredUserIds.includes(routine.userId));
     }
 
     setRoutines(data);
   };
 
-  const handleUserSelect = (userId:string, status = null) => {
+  const handleUserSelect = (userId: string, status: "ACTIVE" | "COMPLETED" | null = null) => {
     setSelectedUserId(userId);
     setFilterStatus(status);
   };
 
-  const handleSearchChange = (term:string) => {
+  const handleSearchChange = (term: string) => {
     setSearchTerm(term);
     setSelectedUserId(null);
     setFilterStatus(null);

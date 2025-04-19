@@ -25,7 +25,7 @@ const Navbar = () => {
   const { signOut } = useClerk();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const role = user?.publicMetadata?.role?.toUpperCase();
+  const role = (user?.publicMetadata?.role as string | undefined)?.toUpperCase() || '';  
   const isProfessor = role === 'PROFESSOR' || role === 'ADMIN';
 
   return (

@@ -1,102 +1,133 @@
-import { PrismaClient, Role, RoutineStatus, DayOfWeek } from '@prisma/client';
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
-async function seed() {
-  // Limpiar la base de datos (opcional, para pruebas)
-  await prisma.routineExercise.deleteMany();
-  await prisma.routineHistory.deleteMany();
-  await prisma.exercise.deleteMany();
-  await prisma.user.deleteMany();
-
+async function main() {
   // Crear usuarios
-  const alumno = await prisma.user.create({
+  const admin = await prisma.user.create({
     data: {
-      email: 'alumno@example.com',
-      name: 'Juan Pérez',
-      dni: '12345678',
-      role: Role.ALUMNO,
+      email: 'admin@crombiegym.com',
+      name: 'Administrador',
+      dni: '10000001',
+      phone: '3415001000',
+      role: 'ADMIN',
     },
   });
 
-  const profesor = await prisma.user.create({
+  const professor = await prisma.user.create({
     data: {
       email: 'profesor@example.com',
-      name: 'Ana Gómez',
-      dni: '87654321',
-      role: Role.PROFESSOR,
+      name: 'Profesor Fit',
+      dni: '10000002',
+      phone: '3415001001',
+      role: 'PROFESSOR',
+    },
+  });
+
+  const alumno1 = await prisma.user.create({
+    data: {
+      email: 'alumno@example.com',
+      name: 'Juan Pérez',
+      dni: '10000003',
+      phone: '3415001002',
+      role: 'ALUMNO',
+    },
+  });
+
+  const alumno2 = await prisma.user.create({
+    data: {
+      email: 'carla.entrena@crombiegym.com',
+      name: 'Carla Giménez',
+      dni: '10000004',
+      phone: '3415001003',
+      role: 'ALUMNO',
     },
   });
 
   // Crear ejercicios
-  const exercises = await prisma.exercise.createMany({
+  const [sentadillas, pressBanca, pesoMuerto, dominadas] = await Promise.all([
+    prisma.exercise.create({
+      data: {
+        name: 'Sentadillas',
+        description: 'Ejercicio compuesto para piernas',
+        videoUrl: 'https://www.youtube.com/watch?v=video1',
+        createdBy: professor.id,
+      },
+    }),
+    prisma.exercise.create({
+      data: {
+        name: 'Press de Banca',
+        description: 'Ejercicio de pecho y tríceps',
+        videoUrl: 'https://www.youtube.com/watch?v=video2',
+        createdBy: professor.id,
+      },
+    }),
+    prisma.exercise.create({
+      data: {
+        name: 'Peso Muerto',
+        description: 'Ejercicio para espalda y glúteos',
+        videoUrl: 'https://www.youtube.com/watch?v=video3',
+        createdBy: professor.id,
+      },
+    }),
+    prisma.exercise.create({
+      data: {
+        name: 'Dominadas',
+        description: 'Ejercicio de tracción vertical',
+        videoUrl: 'https://www.youtube.com/watch?v=video4',
+        createdBy: professor.id,
+      },
+    }),
+  ]);
+
+  // Crear rutina para alumno1
+  const rutina = await prisma.routineHistory.create({
+    data: {
+      userId: alumno1.id,
+      startDate: new Date(),
+      status: 'ACTIVE',
+    },
+  });
+
+  const rutinaSentadillas = await prisma.routineExercise.create({
+    data: {
+      routineId: rutina.id,
+      exerciseId: sentadillas.id,
+      dayOfWeek: 'Lunes',
+    },
+  });
+
+  const rutinaPress = await prisma.routineExercise.create({
+    data: {
+      routineId: rutina.id,
+      exerciseId: pressBanca.id,
+      dayOfWeek: 'Miércoles',
+    },
+  });
+
+  await prisma.routineSet.createMany({
     data: [
-      { name: 'Sentadilla', description: 'Ejercicio para piernas', createdBy: profesor.id },
-      { name: 'Flexiones', description: 'Ejercicio de pecho', createdBy: profesor.id },
-      { name: 'Plancha', description: 'Ejercicio de core', createdBy: profesor.id },
+      {
+        routineExerciseId: rutinaSentadillas.id,
+        sets: 4,
+        reps: 10,
+        weight: 60,
+      },
+      {
+        routineExerciseId: rutinaPress.id,
+        sets: 3,
+        reps: 8,
+        weight: 50,
+      },
     ],
   });
 
-  const exerciseList = await prisma.exercise.findMany();
-
-  // Crear una rutina activa
-  const activeRoutine = await prisma.routineHistory.create({
-    data: {
-      userId: alumno.id,
-      createdBy: profesor.id,
-      startDate: new Date('2025-03-20'),
-      status: RoutineStatus.ACTIVE,
-      routineExercises: {
-        create: [
-          {
-            exerciseId: exerciseList[0].id, // Sentadilla
-            dayOfWeek: DayOfWeek.MONDAY,
-            sets: 3,
-            reps: 12,
-            notes: 'Mantener buena postura',
-          },
-          {
-            exerciseId: exerciseList[1].id, // Flexiones
-            dayOfWeek: DayOfWeek.WEDNESDAY,
-            sets: 3,
-            reps: 15,
-          },
-        ],
-      },
-    },
-  });
-
-  // Crear una rutina completada (historial)
-  const completedRoutine = await prisma.routineHistory.create({
-    data: {
-      userId: alumno.id,
-      createdBy: profesor.id,
-      startDate: new Date('2025-02-01'),
-      endDate: new Date('2025-02-28'),
-      status: RoutineStatus.COMPLETED,
-      routineExercises: {
-        create: [
-          {
-            exerciseId: exerciseList[2].id, // Plancha
-            dayOfWeek: DayOfWeek.FRIDAY,
-            sets: 3,
-            reps: 30,
-            notes: '30 segundos por serie',
-          },
-        ],
-      },
-    },
-  });
-
-  console.log('Seeding completado!');
-  console.log('Usuarios:', { alumno, profesor });
-  console.log('Ejercicios:', exerciseList);
-  console.log('Rutinas:', { activeRoutine, completedRoutine });
+  console.log('✅ Seed completada con profesor@example.com y alumno@example.com');
 }
 
-seed()
+main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Error en seed:', e);
     process.exit(1);
   })
   .finally(async () => {

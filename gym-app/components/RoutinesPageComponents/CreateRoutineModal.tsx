@@ -4,11 +4,12 @@ import { Dialog } from '@headlessui/react';
 import Link from 'next/link';
 import { FaSearch, FaUserCircle, FaTimes } from 'react-icons/fa';
 import Image from 'next/image';
+import { User } from '@prisma/client';
 
 export default function CreateRoutineModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchUsers = async () => {

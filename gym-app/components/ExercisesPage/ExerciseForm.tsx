@@ -1,22 +1,28 @@
 'use client';
-import { useState } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react';
+import { Exercise } from '@prisma/client';
 
-export default function ExerciseForm({ onSubmit }) {
-  const [formData, setFormData] = useState({
+// Define las props del componente
+interface ExerciseFormProps {
+  onSubmit: (data: Partial<Exercise>) => void; // onSubmit recibe un objeto parcial de Exercise
+}
+
+export default function ExerciseForm({ onSubmit }: ExerciseFormProps) {
+  const [formData, setFormData] = useState<Partial<Exercise>>({
     name: '',
     description: '',
     videoUrl: '',
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData({ name: '', description: '', videoUrl: '' });
+    onSubmit(formData); // Llama a la función onSubmit con los datos del formulario
+    setFormData({ name: '', description: '', videoUrl: '' }); // Reinicia el formulario
   };
 
   return (
@@ -28,7 +34,7 @@ export default function ExerciseForm({ onSubmit }) {
           <input
             name="name"
             type="text"
-            value={formData.name}
+            value={formData.name || ''}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white"
             required
@@ -39,7 +45,7 @@ export default function ExerciseForm({ onSubmit }) {
           <input
             name="description"
             type="text"
-            value={formData.description}
+            value={formData.description || ''}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white"
           />
@@ -49,7 +55,7 @@ export default function ExerciseForm({ onSubmit }) {
           <input
             name="videoUrl"
             type="url"
-            value={formData.videoUrl}
+            value={formData.videoUrl || ''}
             onChange={handleChange}
             placeholder="https://..."
             className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white"

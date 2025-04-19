@@ -3,15 +3,20 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import RoutineGrid from './RoutineGrid';
-import { RoutineHistory } from '@prisma/client';
-import { Exercise } from '@prisma/client';
-import { RoutineExercise } from '@prisma/client';
+import { RoutineHistory, RoutineExercise, Exercise, RoutineSet } from '@prisma/client';
+
+// Extender el tipo RoutineWithExercises para incluir sets
+type RoutineWithExercises = RoutineHistory & {
+  routineExercises: (RoutineExercise & {
+    sets: RoutineSet[];
+  })[];
+};
 
 export default function RoutineEditor({ routineId }: { routineId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get('userId');
-  const [routine, setRoutine] = useState<RoutineHistory &{routineExercises:RoutineExercise[]}|null>(null);
+  const [routine, setRoutine] = useState<RoutineWithExercises | null>(null); // Actualizar el tipo
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,12 +34,25 @@ export default function RoutineEditor({ routineId }: { routineId: string }) {
             startDate: new Date(),
             endDate: null,
             status: 'ACTIVE',
-            routineExercises: [],
+            routineExercises: [], // Inicializar como un arreglo vacío
           });
         } else {
           const routineRes = await fetch(`/api/routines/${routineId}`);
           const routineData = await routineRes.json();
-          setRoutine(routineData);
+
+          // Asegurarse de que cada routineExercise tenga sets
+          const routineWithSets: RoutineWithExercises = {
+            ...routineData,
+            routineExercises: (routineData.routineExercises as (RoutineExercise & { sets: RoutineSet[] })[]).map(
+              (exercise) => ({
+                ...exercise,
+                sets: exercise.sets || [],
+              })
+            ),
+          };
+          
+
+          setRoutine(routineWithSets);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -46,7 +64,7 @@ export default function RoutineEditor({ routineId }: { routineId: string }) {
     fetchData();
   }, [routineId, userId]);
 
-  const handleSave = async (routineExercises: RoutineExercise) => {
+  const handleSave = async (routineExercises: RoutineExercise[]) => {
     try {
       const url = routineId === 'new' ? '/api/routines' : `/api/routines/${routineId}`;
       const method = routineId === 'new' ? 'POST' : 'PUT';
@@ -103,7 +121,7 @@ export default function RoutineEditor({ routineId }: { routineId: string }) {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6">
-      <RoutineGrid routine={routine} exercises={exercises} onSave={handleSave} />
+      <RoutineGrid routine={routine!} exercises={exercises} onSave={handleSave} />
       {routine?.status !== 'COMPLETED' && (
         <div className="mt-6 text-right">
           <button
