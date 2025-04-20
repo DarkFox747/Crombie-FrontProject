@@ -42,18 +42,25 @@ Sigue estos pasos para instalar y ejecutar el proyecto localmente.
    npm install
    # o
    yarn install
+3. **Crear una cuenta en clerk y configurarlo**:
+    -En configuracion / Roles y permisos -- Crear los roles de admin, professor y alumno
+    -Al inicio es necerio crear un usuario en clerk y asignarle el rol de admin, en el dashboard podemos hacerl click enl boton de sync para que le mismo se actualice en la base de datos.   
+     En el public metadata agregar la siguiente linea: "role":"admin"
+    -Crear el webhook con la url de tu pagina y agregarle el /api/webhooks/clerk para que se agreguen a la base de datos automaticiamente.
+      En caso de trabjar en local podes utilizar el boton de sync del dashbor para actualizar la db. 
 3. **Configura las variables de entorno**:
 Crea un archivo .env.local en la raíz del proyecto y agrega las siguientes variables:
   # Clerk (reemplaza con tus claves)
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxx
-  CLERK_SECRET_KEY=sk_test_xxxxxxxxxx
-  CLERK_WEBHOOK_SIGNING_SECRET= sk_test_xxxxxxxxxx
-  NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-  NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-  NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
-  NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+- NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxx  
+- CLERK_SECRET_KEY=sk_test_xxxxxxxxxx  
+- CLERK_WEBHOOK_SIGNING_SECRET=sk_test_xxxxxxxxxx  
+- NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in  
+- NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up  
+- NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard  
+- NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard  
   
-  # Base de datos (reemplaza con tu URL de conexión)
+# Base de datos (reemplaza con tu URL de conexión)
+   
   DATABASE_URL="mysql://usuario:contraseña@localhost:5432/gymapp"
 
 4. **Configura la base de datos**:
@@ -89,6 +96,7 @@ Asegúrate de que tu base de datos esté corriendo y ejecuta las migraciones de 
   
 ## 📂 Estructura de Carpetas
 
+```text
 gymapp/
 ├── app/                    # Páginas y rutas API de Next.js
 │   ├── api/                # Rutas API
